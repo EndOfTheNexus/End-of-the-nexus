@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="News and updates for End of the Nexus.">
+    <title>News / Updates - End of the Nexus</title>
+    <style>
+        :root {
+            --panel: rgba(10, 16, 30, 0.94);
+            --panel-border: rgba(130, 173, 255, 0.22);
+            --text-main: #eff3ff;
+            --text-soft: #a9b6d3;
+            --gold: #ffd36b;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at top, rgba(75, 139, 255, 0.22), transparent 32%),
+                linear-gradient(160deg, #090d18 0%, #121c30 45%, #170d24 100%);
+        }
+        .page {
+            width: min(920px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 32px 0 48px;
+        }
+        .card {
+            padding: 24px;
+            border-radius: 24px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            margin-bottom: 18px;
+        }
+        h1, h2 { margin-top: 0; }
+        h1 { color: var(--gold); }
+        p, li { color: var(--text-soft); line-height: 1.6; }
+        a { color: var(--gold); text-decoration: none; }
+        .top-link { display: inline-block; margin-bottom: 18px; }
+        .update-date {
+            display: inline-block;
+            margin-bottom: 10px;
+            color: var(--gold);
+            font-size: 0.9rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <a class="top-link" href="index.html">Back to Game</a>
+
+        <section class="card">
+            <h1>News / Updates</h1>
+            <p>This is the update page for End of the Nexus. You can add new patch notes and game news here as your game grows.</p>
+        </section>
+
+        <section class="card">
+            <span class="update-date">Version v1.3.0</span>
+            <h2>Website Update</h2>
+            <p>The game now has a real website setup with How to Play, Privacy, and News / Updates pages.</p>
+            <p>Highlights:</p>
+            <p>- Added website support pages</p>
+            <p>- Added better sharing and app-ready setup</p>
+        </section>
+
+        <section class="card">
+            <span class="update-date">Version v1.2.0</span>
+            <h2>Community Update</h2>
+            <p>Players can now leave star reviews and feedback from the home menu.</p>
+            <p>Highlights:</p>
+            <p>- Added review button</p>
+            <p>- Added star ratings</p>
+            <p>- Added saved feedback list</p>
+        </section>
+
+        <section class="card">
+            <span class="update-date">Version v1.1.0</span>
+            <h2>App-Ready Build</h2>
+            <p>End of the Nexus now has install support, app metadata, and offline-ready files for a more real app experience.</p>
+            <p>Highlights:</p>
+            <p>- Added install app support</p>
+            <p>- Added manifest and icons</p>
+            <p>- Added offline cache files</p>
+        </section>
+
+        <section class="card">
+            <span class="update-date">Version v1.0.0</span>
+            <h2>Core Game Release</h2>
+            <p>The main game modes, bosses, quests, shop, and player editing all came together into the first real version of End of the Nexus.</p>
+            <p>Highlights:</p>
+            <p>- Story Campaign</p>
+            <p>- Survival Mode</p>
+            <p>- Boss Rush</p>
+            <p>- Zombie Apocalypse</p>
+        </section>
+    </main>
+</body>
+</html>

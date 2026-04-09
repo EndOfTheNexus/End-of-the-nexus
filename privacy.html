@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Privacy information for End of the Nexus.">
+    <title>Privacy - End of the Nexus</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: rgba(10, 16, 30, 0.94);
+            --panel-border: rgba(130, 173, 255, 0.22);
+            --text-main: #eff3ff;
+            --text-soft: #a9b6d3;
+            --gold: #ffd36b;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at top, rgba(75, 139, 255, 0.22), transparent 32%),
+                linear-gradient(160deg, #090d18 0%, #121c30 45%, #170d24 100%);
+        }
+        .page {
+            width: min(900px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 32px 0 48px;
+        }
+        .card {
+            padding: 24px;
+            border-radius: 24px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+        }
+        h1, h2 { margin-top: 0; }
+        h1 { color: var(--gold); }
+        p, li { color: var(--text-soft); line-height: 1.6; }
+        ul { padding-left: 18px; }
+        a { color: var(--gold); text-decoration: none; }
+        .top-link { display: inline-block; margin-bottom: 18px; }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <a class="top-link" href="index.html">Back to Game</a>
+        <section class="card">
+            <h1>Privacy</h1>
+            <p>End of the Nexus mostly stores game data on your own device so your progress can save between sessions.</p>
+
+            <h2>What the game stores</h2>
+            <ul>
+                <li>Your saved progress</li>
+                <li>Your player name and appearance choices</li>
+                <li>Your review text and star rating</li>
+                <li>Other game settings needed to keep your progress working</li>
+            </ul>
+
+            <h2>Where it is stored</h2>
+            <p>This version stores data in your browser on your own device using local storage.</p>
+
+            <h2>Online features</h2>
+            <p>Some features, like install support or hosted website features, may work differently depending on the browser or website host you use later.</p>
+
+            <h2>Contact</h2>
+            <p>This page is a simple starter privacy page for your game website. You can update it later if you add accounts, payments, or real online services.</p>
+        </section>
+    </main>
+</body>
+</html>

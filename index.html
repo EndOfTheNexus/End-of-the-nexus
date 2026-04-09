@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#10182a">
+    <meta name="description" content="End of the Nexus is a dark action RPG with quests, bosses, survival battles, and premium modes.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="End of the Nexus">
+    <meta property="og:description" content="A dark action RPG with quests, dragons, bosses, survival battles, and premium modes.">
+    <meta property="og:image" content="app-icon.svg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="End of the Nexus">
+    <meta name="twitter:description" content="A dark action RPG with quests, dragons, bosses, survival battles, and premium modes.">
+    <meta name="twitter:image" content="app-icon.svg">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="End of the Nexus">
+    <title>End of the Nexus</title>
+    <link rel="manifest" href="manifest.webmanifest?v=1">
+    <link rel="icon" href="app-icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="app-icon.svg">
+    <link rel="stylesheet" href="style.css?v=56">
+</head>
+<body>
+    <main class="app-shell">
+        <section id="home-screen" class="home-screen">
+            <div class="home-panel">
+                <div class="home-panel-top">
+                    <button id="home-continue-button" class="tiny-action" type="button">Continue</button>
+                    <div class="home-panel-top-actions">
+                        <button id="home-install-button" class="tiny-action" type="button">Install App</button>
+                        <button id="home-chat-button" class="tiny-action" type="button">Chat</button>
+                    </div>
+                </div>
+                <p id="home-app-status" class="home-app-status">App build ready. Install works after opening the game from localhost or a website.</p>
+                <div id="home-main-content">
+                    <div class="home-hero-shell">
+                        <div class="home-hero-copy">
+                            <p class="eyebrow">Dark Fantasy Action RPG</p>
+                            <h2>End of the Nexus</h2>
+                            <p class="creator-owner-title">Created By Jonah Matthew Moore</p>
+                            <p class="home-tagline">A dark action game about fortresses, dragons, zombies, and boss battles.</p>
+
+                            <div class="home-badges">
+                                <span class="home-badge">Story Campaign</span>
+                                <span class="home-badge">Boss Fights</span>
+                                <span class="home-badge">Survival</span>
+                                <span class="home-badge">Zombie Mode</span>
+                            </div>
+                        </div>
+
+                        <div class="home-crest-card" aria-hidden="true">
+                            <div class="home-crest-sigil">N</div>
+                            <p>Fortresses</p>
+                            <p>Dragons</p>
+                            <p>Final Battles</p>
+                        </div>
+                    </div>
+
+                    <div class="home-feature-card">
+                        <p class="eyebrow">Recommended Start</p>
+                        <h3>Begin The Story Campaign</h3>
+                        <p>Fight through the world map, break into fortresses, beat bosses, and grow stronger after every quest.</p>
+                        <div class="home-link-row">
+                            <a class="primary-action home-link-button" href="how-to-play.html">How to Play</a>
+                            <a class="ghost-action home-link-button" href="updates.html">News / Updates</a>
+                            <a class="ghost-action home-link-button" href="privacy.html">Privacy</a>
+                        </div>
+                    </div>
+
+                    <div class="storefront-grid">
+                        <div class="storefront-card spotlight-card">
+                            <p class="eyebrow">Why It Stands Out</p>
+                            <h3>Big Boss Fights, Weird Modes, Real Progress</h3>
+                            <p>End of the Nexus is built around big boss battles, unlockable modes, dragons, zombies, multiplayer, and a player who gets stronger over time.</p>
+                            <div class="storefront-points">
+                                <span>20 story quests and boss battles</span>
+                                <span>Zombie Apocalypse and Boss Rush</span>
+                                <span>Premium modes, upgrades, and daily rewards</span>
+                            </div>
+                        </div>
+
+                        <div class="storefront-card demo-card">
+                            <p class="eyebrow">Try It Now</p>
+                            <h3>Play The Free Demo</h3>
+                            <p>Jump into Story Campaign for free, then unlock more modes and rewards with Premium Ticket when you are ready.</p>
+                            <div class="home-link-row">
+                                <button id="home-demo-button" class="primary-action home-link-button" type="button">Play Demo</button>
+                                <button id="home-buy-premium-button" class="ghost-action home-link-button" type="button">Buy Premium</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="storefront-showcase">
+                        <div class="card-heading">
+                            <span>Game Highlights</span>
+                        </div>
+                        <div class="showcase-grid">
+                            <article class="showcase-card">
+                                <div class="showcase-art art-campaign"></div>
+                                <strong>Story Campaign</strong>
+                                <span>Travel to fortresses, beat minions, and face giant bosses.</span>
+                            </article>
+                            <article class="showcase-card">
+                                <div class="showcase-art art-zombie"></div>
+                                <strong>Zombie Apocalypse</strong>
+                                <span>Fight through an overrun village and survive the underworld finale.</span>
+                            </article>
+                            <article class="showcase-card">
+                                <div class="showcase-art art-premium"></div>
+                                <strong>Premium Ticket</strong>
+                                <span>Get premium modes, bonus rewards, and stronger gear.</span>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div class="home-id-card">
+                        <span class="field-label">Creator</span>
+                        <strong>Jonah Matthew Moore</strong>
+                        <label class="field-label" for="player-name-input">Player Name</label>
+                        <input id="player-name-input" class="name-input" type="text" maxlength="20" placeholder="Enter your name" value="Player 1">
+                    </div>
+
+                    <div class="home-menu-panel">
+                        <div class="card-heading">
+                            <span>Main Menu</span>
+                        </div>
+                        <div class="home-actions">
+                        <button id="home-continue-large-button" class="primary-action" type="button">Continue</button>
+                        <button id="home-multiplayer-button" class="ghost-action" type="button">Multiplayer</button>
+                        <button id="home-pve-button" class="primary-action" type="button">Story Campaign</button>
+                        <button id="home-bossrush-button" class="ghost-action" type="button">Boss Rush</button>
+                        <button id="home-zombie-button" class="ghost-action" type="button">Zombie Apocalypse</button>
+                        <button id="home-survival-button" class="ghost-action" type="button">Survival Mode</button>
+                        <button id="home-training-button" class="ghost-action" type="button">Training</button>
+                        <button id="home-premium-ticket-button" class="ghost-action" type="button">Premium Ticket</button>
+                        <button id="home-reviews-button" class="ghost-action" type="button">Reviews</button>
+                        <button id="home-creator-button" class="ghost-action" type="button">About The Creator</button>
+                        <button id="home-store-button" class="ghost-action" type="button">Go To Store</button>
+                        <button id="home-edit-button" class="ghost-action" type="button">Edit Player</button>
+                        </div>
+                    </div>
+
+                    <div class="home-subpanel adventure-board">
+                        <div class="card-heading">
+                            <span>Guild Quest Board</span>
+                        </div>
+                        <div id="home-quest-list" class="quest-list"></div>
+                    </div>
+                </div>
+
+                <div id="home-store-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>Home Store</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <div id="home-shop-items" class="shop-grid"></div>
+                </div>
+
+                <div id="home-editor-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>Player Look</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <div class="editor-preview-card">
+                        <canvas id="editor-player-canvas" class="editor-player-canvas" width="260" height="260"></canvas>
+                        <p id="editor-player-name" class="editor-player-name">Champion</p>
+                    </div>
+                    <div class="editor-grid">
+                        <label class="field-label" for="look-skin">Skin Tone</label>
+                        <select id="look-skin" class="name-input">
+                            <option value="warm">Warm</option>
+                            <option value="deep">Deep</option>
+                            <option value="fair">Fair</option>
+                        </select>
+                        <label class="field-label" for="look-hair">Hair</label>
+                        <select id="look-hair" class="name-input">
+                            <option value="brown">Brown</option>
+                            <option value="black">Black</option>
+                            <option value="blonde">Blonde</option>
+                            <option value="red">Red</option>
+                        </select>
+                        <label class="field-label" for="look-armor">Armor</label>
+                        <select id="look-armor" class="name-input">
+                            <option value="azure">Azure Knight</option>
+                            <option value="crimson">Crimson Guard</option>
+                            <option value="emerald">Emerald Warden</option>
+                        </select>
+                        <label class="field-label" for="look-build">Build</label>
+                        <select id="look-build" class="name-input">
+                            <option value="athletic">Athletic</option>
+                            <option value="bulky">Bulky</option>
+                            <option value="swift">Swift</option>
+                        </select>
+                        <label class="field-label" for="look-visor">Visor</label>
+                        <select id="look-visor" class="name-input">
+                            <option value="ice">Ice Blue</option>
+                            <option value="gold">Gold</option>
+                            <option value="crimson">Crimson</option>
+                            <option value="emerald">Emerald</option>
+                        </select>
+                        <label class="field-label" for="look-helmet">Helmet</label>
+                        <select id="look-helmet" class="name-input">
+                            <option value="knight">Knight</option>
+                            <option value="crowned">Crowned</option>
+                            <option value="shadow">Shadow</option>
+                        </select>
+                        <label class="field-label" for="look-rider">Style</label>
+                        <select id="look-rider" class="name-input">
+                            <option value="foot">On Foot</option>
+                            <option value="rider">Rider</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="home-chat-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>Home Chat</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <div id="home-chat-log" class="chat-log" aria-live="polite"></div>
+                    <div class="chat-compose">
+                        <input id="home-chat-input" class="chat-input" type="text" maxlength="160" placeholder="Type a message">
+                        <button id="home-chat-send-button" class="primary-action" type="button">Send</button>
+                    </div>
+                </div>
+
+                <div id="home-creator-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>About The Creator</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <p class="creator-owner-title">Jonah Matthew Moore</p>
+                    <p class="hero-copy">This is your locked creator page.</p>
+                    <div class="creator-card">
+                        <strong id="creator-card-name">Jonah Matthew Moore</strong>
+                        <p id="creator-card-copy" class="creator-card-copy">Write a little about yourself, your game ideas, and what you want to build.</p>
+                    </div>
+                    <label class="field-label" for="creator-about-input">About You</label>
+                    <textarea id="creator-about-input" class="creator-about-input" maxlength="600" placeholder="Hi, I'm Jonah. I like making games about..." readonly></textarea>
+                </div>
+
+                <div id="home-reviews-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>Player Reviews</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <div class="review-summary-card">
+                        <strong id="review-average-text">No reviews yet</strong>
+                        <span id="review-count-text">0 total reviews</span>
+                    </div>
+                    <label class="field-label" for="review-stars-select">Star Rating</label>
+                    <select id="review-stars-select" class="name-input">
+                        <option value="5">5 Stars</option>
+                        <option value="4">4 Stars</option>
+                        <option value="3">3 Stars</option>
+                        <option value="2">2 Stars</option>
+                        <option value="1">1 Star</option>
+                    </select>
+                    <label class="field-label" for="review-feedback-input">Feedback</label>
+                    <textarea id="review-feedback-input" class="creator-about-input review-feedback-input" maxlength="240" placeholder="Tell people what you think about the game."></textarea>
+                    <div class="home-actions review-actions">
+                        <button id="review-submit-button" class="primary-action" type="button">Leave Review</button>
+                    </div>
+                    <div id="review-status-text" class="field-label">Share a star review and feedback here.</div>
+                    <div id="review-list" class="review-list"></div>
+                </div>
+
+                <div id="home-multiplayer-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>Multiplayer Room</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <label class="field-label" for="multiplayer-room-input">Room Name</label>
+                    <input id="multiplayer-room-input" class="name-input" type="text" maxlength="24" placeholder="Enter room name">
+                    <label class="field-label" for="multiplayer-mode-select">Mode</label>
+                    <select id="multiplayer-mode-select" class="name-input">
+                        <option value="coop">Co-op Team Up</option>
+                        <option value="versus">Versus Duel</option>
+                        <option value="bossraid">Boss Raid (Premium)</option>
+                        <option value="dragonhunt">Dragon Hunt (Premium)</option>
+                    </select>
+                    <label class="field-label" for="multiplayer-arena-select">Arena</label>
+                    <select id="multiplayer-arena-select" class="name-input">
+                        <option value="quake">Quake Square</option>
+                        <option value="storm">Storm Docks</option>
+                        <option value="frost">Frost Hollow</option>
+                        <option value="desert">Glass Desert</option>
+                        <option value="alien">Alien Crater</option>
+                    </select>
+                    <p class="hero-copy">Open this game in another tab or browser on the same origin, use the same room name, and you will see each other live.</p>
+                    <div class="home-actions">
+                        <button id="multiplayer-join-button" class="primary-action" type="button">Join Room</button>
+                    </div>
+                    <p id="multiplayer-status-text" class="field-label">Status: Not connected</p>
+                </div>
+
+                <div id="home-premium-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>Premium Ticket</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <p class="hero-copy">Unlock premium modes, bonus gear, and a daily reward track like a season pass.</p>
+                    <div id="premium-ticket-today" class="premium-ticket-today"></div>
+                    <div class="home-actions">
+                        <button id="premium-ticket-buy-button" class="primary-action" type="button">Buy Premium Ticket</button>
+                    </div>
+                    <div id="premium-ticket-status" class="field-label">Status: Locked</div>
+                    <div class="card-heading">
+                        <span>Premium Modes</span>
+                    </div>
+                    <div class="home-actions">
+                        <button id="home-premium-nightmare-button" class="ghost-action" type="button">Nightmare Survival</button>
+                        <button id="home-premium-alien-button" class="ghost-action" type="button">Alien Gauntlet</button>
+                        <button id="home-premium-legend-button" class="ghost-action" type="button">Legend Boss Rush</button>
+                        <button id="home-premium-dragon-button" class="ghost-action" type="button">Dragon Storm</button>
+                        <button id="home-premium-zombie-button" class="ghost-action" type="button">Zombie Last Stand</button>
+                        <button id="home-premium-chaos-button" class="ghost-action" type="button">Chaos Arena</button>
+                    </div>
+                    <div class="card-heading">
+                        <span>Funniest Premium Quests</span>
+                    </div>
+                    <div id="premium-ticket-quests" class="premium-quest-grid"></div>
+                    <div id="premium-ticket-rewards" class="premium-reward-grid"></div>
+                </div>
+
+                <div id="home-zombie-reward-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>Zombie Victory Reward</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <p class="hero-copy">You beat Zombie Apocalypse. Pick one special reward.</p>
+                    <div id="zombie-reward-status" class="field-label">Choose one reward.</div>
+                    <div id="zombie-reward-grid" class="premium-quest-grid"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dialogue-panel" class="dialogue-panel hidden" aria-live="polite">
+            <div class="dialogue-card">
+                <p id="dialogue-speaker" class="eyebrow">Witness</p>
+                <h3 id="dialogue-title">What happened here?</h3>
+                <p id="dialogue-text" class="dialogue-text"></p>
+                <div id="dialogue-choices" class="dialogue-choices">
+                    <button id="dialogue-what-button" class="primary-action" type="button">What happened?</button>
+                    <button id="dialogue-where-button" class="ghost-action" type="button">Where did the boss go?</button>
+                    <button id="dialogue-who-button" class="ghost-action" type="button">Who survived?</button>
+                </div>
+                <div class="dialogue-actions">
+                    <button id="dialogue-close-button" class="ghost-action" type="button">Close</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="hero-panel">
+            <p class="eyebrow">Browser Arena Build</p>
+            <h1>End of the Nexus</h1>
+            <p class="hero-copy">
+                A web-based battle interface for your game with live stats, keyboard controls,
+                mobile buttons, enemy waves, and boss encounters.
+            </p>
+            <div class="hero-actions">
+                <button id="start-button" class="primary-action" type="button">Open Home</button>
+                <button id="restart-button" class="ghost-action" type="button">Restart Run</button>
+            </div>
+        </section>
+
+        <section class="dashboard">
+            <div class="status-card">
+                <div class="card-heading">
+                    <span>Hero Status</span>
+                    <span id="status-text" class="status-pill">Ready</span>
+                </div>
+
+                <div class="stat-block">
+                    <div class="stat-row">
+                        <span>Health</span>
+                        <strong id="hp-text">100 / 100</strong>
+                    </div>
+                    <div class="meter">
+                        <div id="hp-fill" class="meter-fill health-fill"></div>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="mini-stat">
+                        <span>Damage</span>
+                        <strong id="damage-text">15</strong>
+                    </div>
+                    <div class="mini-stat">
+                        <span>Speed / Armor</span>
+                        <strong id="speed-text">5</strong>
+                    </div>
+                    <div class="mini-stat">
+                        <span>Wave</span>
+                        <strong id="wave-text">1</strong>
+                    </div>
+                    <div class="mini-stat">
+                        <span>Score</span>
+                        <strong id="score-text">0</strong>
+                    </div>
+                    <div class="mini-stat">
+                        <span>Gold</span>
+                        <strong id="gold-text">0</strong>
+                    </div>
+                    <div class="mini-stat">
+                        <span>Weapon</span>
+                        <strong id="weapon-text">Training Sword</strong>
+                    </div>
+                    <div class="mini-stat">
+                        <span>Dragons</span>
+                        <strong id="dragon-text">None</strong>
+                    </div>
+                    <div class="mini-stat">
+                        <span>Quest</span>
+                        <strong id="quest-text">1. The Earthquake</strong>
+                    </div>
+                    <div class="mini-stat">
+                        <span>Combo / Rank</span>
+                        <strong id="combo-text">0x / Rookie</strong>
+                    </div>
+                </div>
+
+                <div class="card-heading boss-heading">
+                    <span>Encounter</span>
+                    <span id="boss-status" class="status-pill muted">Dormant</span>
+                </div>
+                <div class="stat-block">
+                    <div class="stat-row">
+                        <span>Opponent Health</span>
+                        <strong id="boss-hp-text">300 / 300</strong>
+                    </div>
+                    <div class="meter">
+                        <div id="boss-fill" class="meter-fill boss-fill"></div>
+                    </div>
+                </div>
+
+                <div class="assistant-card">
+                    <div class="card-heading assistant-heading">
+                        <span>AI Assistant</span>
+                        <span id="assistant-mode" class="status-pill muted">Idle</span>
+                    </div>
+                    <p id="assistant-text" class="assistant-text">Open a quest and I will suggest your next move.</p>
+                </div>
+            </div>
+
+            <div class="arena-card">
+                <div class="arena-topbar">
+                    <div>
+                        <p class="label">Controls</p>
+                        <p class="hint">Move with arrow keys or WASD. Press E to question people. Use Space to fight.</p>
+                    </div>
+                    <div class="runtime-stats">
+                        <span id="enemy-count">Enemies: 3</span>
+                        <span id="timer-text">Time: 0.0s</span>
+                    </div>
+                </div>
+                <canvas id="game-canvas" width="1120" height="660" aria-label="End of the Nexus battle arena"></canvas>
+            </div>
+
+            <div class="log-card">
+                <div class="card-heading">
+                    <span>Dragon Forge Store</span>
+                </div>
+                <div id="shop-items" class="shop-grid"></div>
+
+                <div class="card-heading">
+                    <span>Battle Feed</span>
+                    <button id="clear-log-button" class="tiny-action" type="button">Clear Log</button>
+                </div>
+                <div id="combat-log" class="combat-log" aria-live="polite"></div>
+
+                <div class="card-heading">
+                    <span>Chat</span>
+                </div>
+                <div id="chat-log" class="chat-log" aria-live="polite"></div>
+                <div class="chat-compose">
+                    <input id="chat-input" class="chat-input" type="text" maxlength="160" placeholder="Type a message">
+                    <button id="chat-send-button" class="primary-action" type="button">Send</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="control-dock" aria-label="Game controls">
+            <button data-action="up" type="button">Up</button>
+            <button data-action="left" type="button">Left</button>
+            <button data-action="block" type="button">Block</button>
+            <button data-action="attack" class="attack-button" type="button">Attack</button>
+            <button data-action="right" type="button">Right</button>
+            <button data-action="down" type="button">Down</button>
+        </section>
+
+        <footer class="site-footer">
+            <a href="how-to-play.html">How to Play</a>
+            <a href="updates.html">News / Updates</a>
+            <a href="privacy.html">Privacy</a>
+        </footer>
+    </main>
+
+    <script src="script.js?v=56"></script>
+</body>
+</html>

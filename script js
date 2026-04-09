@@ -1,0 +1,72 @@
+/* ─── GLOBAL ─── */
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #1b1b2f;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+}
+
+#game-container {
+    width: 960px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2em;
+    margin: 10px 0;
+    color: #ffd700;
+    text-shadow: 2px 2px 5px #000;
+}
+
+/* ─── BARS ─── */
+.bar {
+    width: 200px;
+    height: 20px;
+    background: #333;
+    border-radius: 10px;
+    margin: 5px auto;
+    overflow: hidden;
+}
+
+.bar .fill {
+    height: 100%;
+    width: 50%;
+    background: #0f0;
+    transition: width 0.3s;
+    border-radius: 10px;
+}
+
+/* ─── GAME CANVAS ─── */
+#game-canvas {
+    background: linear-gradient(to bottom, #0d0d0d, #1b1b2f);
+    border: 3px solid #fff;
+    margin: 20px 0;
+}
+
+/* ─── CONTROLS ─── */
+#controls button {
+    margin: 5px;
+    padding: 10px 15px;
+    background: #2e2e5e;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#controls button:hover {
+    background: #4545a5;
+}
+
+/* ─── DIALOGUE ─── */
+#dialogue {
+    background: rgba(0,0,0,0.7);
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    min-height: 40px;
+}
