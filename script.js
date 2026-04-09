@@ -397,6 +397,7 @@ const REVIEWS_SAVE_KEY = "nexus-player-reviews";
 const VIEW_COUNTER_NAMESPACE = "jonahmatthewmoore-afk-end-of-the-nexus";
 const VIEW_COUNTER_KEY = "website-views";
 const VIEW_COUNTER_SESSION_KEY = "end-of-the-nexus-view-counted";
+const VIEW_COUNTER_FALLBACK_KEY = "end-of-the-nexus-local-views";
 const LOOKS = {
     skin: {
         warm: "#f2c5a1",
@@ -2830,13 +2831,28 @@ async function refreshViewerCount() {
         return;
     }
 
+    const shouldCountVisit = !window.sessionStorage.getItem(VIEW_COUNTER_SESSION_KEY);
+    const bumpLocalFallback = () => {
+        try {
+            const current = Number(window.localStorage.getItem(VIEW_COUNTER_FALLBACK_KEY) || "0");
+            const next = shouldCountVisit ? current + 1 : current;
+            if (shouldCountVisit) {
+                window.localStorage.setItem(VIEW_COUNTER_FALLBACK_KEY, String(next));
+                window.sessionStorage.setItem(VIEW_COUNTER_SESSION_KEY, "done");
+            }
+            return next;
+        } catch (error) {
+            return 0;
+        }
+    };
+
     if (window.location.protocol === "file:") {
-        ui.viewerCountText.textContent = "0";
-        ui.viewerCountNote.textContent = "Viewer counting works on the live website, not from a local file on this computer.";
+        const localViews = bumpLocalFallback();
+        ui.viewerCountText.textContent = localViews.toLocaleString();
+        ui.viewerCountNote.textContent = "This is a device-only view count while you are opening the game from files on this computer.";
         return;
     }
 
-    const shouldCountVisit = !window.sessionStorage.getItem(VIEW_COUNTER_SESSION_KEY);
     const endpoint = shouldCountVisit
         ? `https://api.countapi.xyz/hit/${VIEW_COUNTER_NAMESPACE}/${VIEW_COUNTER_KEY}`
         : `https://api.countapi.xyz/get/${VIEW_COUNTER_NAMESPACE}/${VIEW_COUNTER_KEY}`;
@@ -2851,8 +2867,9 @@ async function refreshViewerCount() {
             window.sessionStorage.setItem(VIEW_COUNTER_SESSION_KEY, "done");
         }
     } catch (error) {
-        ui.viewerCountText.textContent = "Unavailable";
-        ui.viewerCountNote.textContent = "The viewer counter could not load right now.";
+        const localViews = bumpLocalFallback();
+        ui.viewerCountText.textContent = localViews.toLocaleString();
+        ui.viewerCountNote.textContent = "Live viewer count could not load, so this is a backup count for views on this device.";
     }
 }
 
