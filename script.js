@@ -126,7 +126,7 @@ const WORLD = {
     width: 5200,
     height: 3200
 };
-const CREATOR_NAME = "The Developer";
+const CREATOR_NAME = "Jonah Matthew Moore";
 const DEFAULT_PLAYER_NAME = "Player 1";
 const CREATOR_ABOUT_OLD = "Hi, I am Jonah matthew moore and i am a 10 year old boy who lives in cary north carolina. I have worked on this game for over a year and got inspired from my 21 year old brother. He works in UNC colledge and climbs mountains and codes for a living. I am gratefull for all of you people who supporte m to make this game.";
 const CREATOR_ABOUT_OLD_FIXED = "Hi, I am Jonah Matthew Moore, and I am a 10-year-old boy who lives in Cary, North Carolina. I have worked on this game for over a year and got inspired by my 21-year-old brother. He works at UNC college, climbs mountains, and codes for a living. I am grateful for all of you people who supported me in making this game.";
