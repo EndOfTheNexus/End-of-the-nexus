@@ -2,7 +2,7 @@
   "name": "End of the Nexus",
   "short_name": "Nexus",
   "description": "A dark action RPG with quests, dragons, bosses, survival battles, and premium adventures.",
-  "start_url": "/End-of-the-nexus/index.html?v=3",
+  "start_url": "/End-of-the-nexus/index.html?v=4",
   "scope": "/End-of-the-nexus/",
   "display": "standalone",
   "background_color": "#0b1020",
