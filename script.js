@@ -398,6 +398,7 @@ const VIEW_COUNTER_NAMESPACE = "end-of-the-nexus";
 const VIEW_COUNTER_KEY = "website-views";
 const VIEW_COUNTER_SESSION_KEY = "end-of-the-nexus-view-counted";
 const VIEW_COUNTER_FALLBACK_KEY = "end-of-the-nexus-local-views";
+const VIEW_COUNTER_FLOOR = 215;
 const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v1";
 const LOOKS = {
     skin: {
@@ -2835,7 +2836,7 @@ async function refreshViewerCount() {
     const shouldCountVisit = !window.sessionStorage.getItem(VIEW_COUNTER_SESSION_KEY);
     const bumpLocalFallback = () => {
         try {
-            const current = Number(window.localStorage.getItem(VIEW_COUNTER_FALLBACK_KEY) || "0");
+            const current = Math.max(VIEW_COUNTER_FLOOR, Number(window.localStorage.getItem(VIEW_COUNTER_FALLBACK_KEY) || "0"));
             const next = shouldCountVisit ? current + 1 : current;
             if (shouldCountVisit) {
                 window.localStorage.setItem(VIEW_COUNTER_FALLBACK_KEY, String(next));
@@ -2861,7 +2862,7 @@ async function refreshViewerCount() {
     try {
         const response = await fetch(endpoint);
         const data = await response.json();
-        const value = Number(data && data.value) || 0;
+        const value = Math.max(VIEW_COUNTER_FLOOR, Number(data && data.value) || 0);
         ui.viewerCountText.textContent = value.toLocaleString();
         ui.viewerCountNote.textContent = "This shows total website views for your live game page.";
         if (shouldCountVisit) {
