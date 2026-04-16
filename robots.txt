@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://jonahmatthewmoore-afk.github.io/End-of-the-nexus/sitemap.xml
+Sitemap: https://endofthenexus.github.io/sitemap.xml
