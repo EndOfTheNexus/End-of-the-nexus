@@ -399,7 +399,7 @@ const VIEW_COUNTER_KEY = "website-views";
 const VIEW_COUNTER_SESSION_KEY = "end-of-the-nexus-view-counted";
 const VIEW_COUNTER_FALLBACK_KEY = "end-of-the-nexus-local-views";
 const VIEW_COUNTER_FLOOR = 215;
-const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v1";
+const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v2";
 const LOOKS = {
     skin: {
         warm: "#f2c5a1",
