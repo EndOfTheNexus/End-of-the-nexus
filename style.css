@@ -224,6 +224,7 @@ body.play-mode .control-dock {
     color: var(--gold);
 }
 
+.home-panel h1,
 .home-panel h2 {
     margin: 0;
     font-size: clamp(2.6rem, 5vw, 4.4rem);
