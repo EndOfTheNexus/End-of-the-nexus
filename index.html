@@ -149,7 +149,7 @@
                     <div class="home-menu-panel">
                         <div class="card-heading">
                             <span>Main Menu</span>
-                        </div>
+                 </div>
                         <div class="home-actions">
                         <button id="home-continue-large-button" class="primary-action" type="button">Continue</button>
                         <button id="home-multiplayer-button" class="ghost-action" type="button">Multiplayer</button>
@@ -256,21 +256,29 @@
                         <button class="tiny-action" data-home-back type="button">Back</button>
                     </div>
                     <div class="arcade-launcher-grid">
-                        <button id="menu-end-of-the-nexus-button" class="arcade-launch-card" type="button">
+                        <button id="menu-end-of-the-nexus-button" class="arcade-launch-card arcade-launch-card-story" type="button">
                             <strong>End of the Nexus</strong>
                             <span>Jump back into the main action RPG.</span>
                         </button>
-                        <button id="menu-chess-button" class="arcade-launch-card" type="button">
+                        <button id="menu-chess-button" class="arcade-launch-card arcade-launch-card-chess" type="button">
                             <strong>Chess</strong>
-                            <span>Play local two-player chess on an 8x8 board.</span>
+                            <span>Play a local duel with a classic board look.</span>
                         </button>
-                        <button id="menu-checkers-button" class="arcade-launch-card" type="button">
+                        <button id="menu-checkers-button" class="arcade-launch-card arcade-launch-card-checkers" type="button">
                             <strong>Checkers</strong>
-                            <span>Play local checkers with captures and kings.</span>
+                            <span>Play fast jump captures with a warmer style.</span>
                         </button>
-                        <button id="menu-music-button" class="arcade-launch-card" type="button">
+                        <button id="menu-tictactoe-button" class="arcade-launch-card arcade-launch-card-neon" type="button">
+                            <strong>Tic-Tac-Toe</strong>
+                            <span>Quick neon rounds for two players.</span>
+                        </button>
+                        <button id="menu-memory-button" class="arcade-launch-card arcade-launch-card-memory" type="button">
+                            <strong>Memory Match</strong>
+                            <span>Flip cards and match icons in a dreamy grid.</span>
+                        </button>
+                        <button id="menu-music-button" class="arcade-launch-card arcade-launch-card-music" type="button">
                             <strong>Music</strong>
-                            <span>Listen to built-in synth tracks while you hang out.</span>
+                            <span>Listen to built-in original synth tracks while you hang out.</span>
                         </button>
                     </div>
                     <div id="arcade-status-text" class="field-label">Open something from the menu above.</div>
@@ -293,6 +301,24 @@
                         <div id="arcade-checkers-board" class="board-grid checkers-board" aria-label="Checkers board"></div>
                     </div>
 
+                    <div id="arcade-tictactoe-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Tic-Tac-Toe</span>
+                            <button id="arcade-tictactoe-reset-button" class="tiny-action" type="button">Reset</button>
+                        </div>
+                        <p id="arcade-tictactoe-turn" class="hero-copy">X to move.</p>
+                        <div id="arcade-tictactoe-board" class="board-grid ttt-board" aria-label="Tic tac toe board"></div>
+                    </div>
+
+                    <div id="arcade-memory-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Memory Match</span>
+                            <button id="arcade-memory-reset-button" class="tiny-action" type="button">Reset</button>
+                        </div>
+                        <p id="arcade-memory-status" class="hero-copy">Find all matching pairs.</p>
+                        <div id="arcade-memory-board" class="board-grid memory-board" aria-label="Memory board"></div>
+                    </div>
+
                     <div id="arcade-music-panel" class="arcade-tool hidden">
                         <div class="card-heading">
                             <span>Music</span>
@@ -303,6 +329,15 @@
                             <button class="primary-action" data-music-track="dungeon" type="button">Dungeon Pulse</button>
                             <button class="ghost-action" data-music-track="skyline" type="button">Skyline Drift</button>
                             <button class="ghost-action" data-music-track="ember" type="button">Ember Rush</button>
+                            <button class="ghost-action" data-music-track="midnight" type="button">Midnight Run</button>
+                            <button class="ghost-action" data-music-track="glass" type="button">Glass Orbit</button>
+                            <button class="ghost-action" data-music-track="storm" type="button">Storm Arcade</button>
+                            <button class="ghost-action" data-music-track="pixel" type="button">Pixel Bloom</button>
+                            <button class="ghost-action" data-music-track="moon" type="button">Moon Static</button>
+                            <button class="ghost-action" data-music-track="sunrise" type="button">Sunrise Grid</button>
+                            <button class="ghost-action" data-music-track="comet" type="button">Comet Tape</button>
+                            <button class="ghost-action" data-music-track="royal" type="button">Royal Circuit</button>
+                            <button class="ghost-action" data-music-track="harbor" type="button">Harbor Lights</button>
                         </div>
                     </div>
                 </div>

@@ -57,6 +57,8 @@ const ui = {
     menuEndOfTheNexusButton: document.getElementById("menu-end-of-the-nexus-button"),
     menuChessButton: document.getElementById("menu-chess-button"),
     menuCheckersButton: document.getElementById("menu-checkers-button"),
+    menuTicTacToeButton: document.getElementById("menu-tictactoe-button"),
+    menuMemoryButton: document.getElementById("menu-memory-button"),
     menuMusicButton: document.getElementById("menu-music-button"),
     arcadeStatusText: document.getElementById("arcade-status-text"),
     arcadeChessPanel: document.getElementById("arcade-chess-panel"),
@@ -67,6 +69,14 @@ const ui = {
     arcadeCheckersTurn: document.getElementById("arcade-checkers-turn"),
     arcadeCheckersBoard: document.getElementById("arcade-checkers-board"),
     arcadeCheckersResetButton: document.getElementById("arcade-checkers-reset-button"),
+    arcadeTicTacToePanel: document.getElementById("arcade-tictactoe-panel"),
+    arcadeTicTacToeTurn: document.getElementById("arcade-tictactoe-turn"),
+    arcadeTicTacToeBoard: document.getElementById("arcade-tictactoe-board"),
+    arcadeTicTacToeResetButton: document.getElementById("arcade-tictactoe-reset-button"),
+    arcadeMemoryPanel: document.getElementById("arcade-memory-panel"),
+    arcadeMemoryStatus: document.getElementById("arcade-memory-status"),
+    arcadeMemoryBoard: document.getElementById("arcade-memory-board"),
+    arcadeMemoryResetButton: document.getElementById("arcade-memory-reset-button"),
     arcadeMusicPanel: document.getElementById("arcade-music-panel"),
     arcadeMusicNowPlaying: document.getElementById("arcade-music-now-playing"),
     arcadeMusicStopButton: document.getElementById("arcade-music-stop-button"),
@@ -211,6 +221,8 @@ const arcadeHub = {
     active: "launcher",
     chess: createInitialChessState(),
     checkers: createInitialCheckersState(),
+    ticTacToe: createInitialTicTacToeState(),
+    memory: createInitialMemoryState(),
     music: {
         context: null,
         gain: null,
@@ -1025,6 +1037,29 @@ function createInitialCheckersState() {
     };
 }
 
+function createInitialTicTacToeState() {
+    return {
+        board: Array(9).fill(""),
+        turn: "X",
+        winner: ""
+    };
+}
+
+function createInitialMemoryState() {
+    const icons = ["🐉", "⚔️", "👑", "🛡️", "🔥", "🌙", "💎", "🧪"];
+    const cards = [...icons, ...icons]
+        .map((icon, index) => ({ id: `${icon}-${index}`, icon, revealed: false, matched: false }))
+        .sort(() => Math.random() - 0.5);
+    return {
+        cards,
+        firstPick: null,
+        secondPick: null,
+        lock: false,
+        turns: 0,
+        matches: 0
+    };
+}
+
 function setArcadeStatus(message) {
     if (ui.arcadeStatusText) {
         ui.arcadeStatusText.textContent = message;
@@ -1042,6 +1077,12 @@ function renderArcadePanel() {
     if (ui.arcadeCheckersPanel) {
         ui.arcadeCheckersPanel.classList.toggle("hidden", active !== "checkers");
     }
+    if (ui.arcadeTicTacToePanel) {
+        ui.arcadeTicTacToePanel.classList.toggle("hidden", active !== "tictactoe");
+    }
+    if (ui.arcadeMemoryPanel) {
+        ui.arcadeMemoryPanel.classList.toggle("hidden", active !== "memory");
+    }
     if (ui.arcadeMusicPanel) {
         ui.arcadeMusicPanel.classList.toggle("hidden", active !== "music");
     }
@@ -1053,6 +1094,12 @@ function renderArcadePanel() {
     } else if (active === "checkers") {
         setArcadeStatus("Checkers is open. Red moves first.");
         renderCheckersBoard();
+    } else if (active === "tictactoe") {
+        setArcadeStatus("Tic-Tac-Toe is open. Quick local rounds.");
+        renderTicTacToeBoard();
+    } else if (active === "memory") {
+        setArcadeStatus("Memory Match is open. Find every pair.");
+        renderMemoryBoard();
     } else if (active === "music") {
         setArcadeStatus("Music player is open. Pick a track.");
         updateMusicNowPlaying();
@@ -1342,6 +1389,117 @@ function handleCheckersClick(row, col) {
     renderCheckersBoard();
 }
 
+function getTicTacToeWinner(board) {
+    const lines = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ];
+    for (const [a, b, c] of lines) {
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+            return board[a];
+        }
+    }
+    return board.every(Boolean) ? "draw" : "";
+}
+
+function renderTicTacToeBoard() {
+    if (!ui.arcadeTicTacToeBoard || !ui.arcadeTicTacToeTurn) {
+        return;
+    }
+    const ttt = arcadeHub.ticTacToe;
+    ui.arcadeTicTacToeTurn.textContent = ttt.winner
+        ? (ttt.winner === "draw" ? "Draw game. Reset to play again." : `${ttt.winner} wins.`)
+        : `${ttt.turn} to move.`;
+    ui.arcadeTicTacToeBoard.innerHTML = ttt.board.map((cell, index) => `
+        <button class="board-cell ttt-cell" type="button" data-ttt-index="${index}">${cell || ""}</button>
+    `).join("");
+    ui.arcadeTicTacToeBoard.querySelectorAll("[data-ttt-index]").forEach((button) => {
+        button.addEventListener("click", () => handleTicTacToeClick(Number(button.dataset.tttIndex)));
+    });
+}
+
+function handleTicTacToeClick(index) {
+    const ttt = arcadeHub.ticTacToe;
+    if (ttt.winner || ttt.board[index]) {
+        return;
+    }
+    ttt.board[index] = ttt.turn;
+    ttt.winner = getTicTacToeWinner(ttt.board);
+    if (!ttt.winner) {
+        ttt.turn = ttt.turn === "X" ? "O" : "X";
+    }
+    renderTicTacToeBoard();
+}
+
+function renderMemoryBoard() {
+    if (!ui.arcadeMemoryBoard || !ui.arcadeMemoryStatus) {
+        return;
+    }
+    const memory = arcadeHub.memory;
+    ui.arcadeMemoryStatus.textContent = memory.matches === 8
+        ? `You found all pairs in ${memory.turns} turns.`
+        : `Matches: ${memory.matches}/8 | Turns: ${memory.turns}`;
+    ui.arcadeMemoryBoard.innerHTML = memory.cards.map((card, index) => {
+        const isVisible = card.revealed || card.matched;
+        return `
+            <button class="board-cell memory-cell${isVisible ? " revealed" : ""}${card.matched ? " matched" : ""}" type="button" data-memory-index="${index}">
+                ${isVisible ? card.icon : "?"}
+            </button>
+        `;
+    }).join("");
+    ui.arcadeMemoryBoard.querySelectorAll("[data-memory-index]").forEach((button) => {
+        button.addEventListener("click", () => handleMemoryClick(Number(button.dataset.memoryIndex)));
+    });
+}
+
+function handleMemoryClick(index) {
+    const memory = arcadeHub.memory;
+    const card = memory.cards[index];
+    if (!card || card.revealed || card.matched || memory.lock) {
+        return;
+    }
+
+    card.revealed = true;
+    if (memory.firstPick === null) {
+        memory.firstPick = index;
+        renderMemoryBoard();
+        return;
+    }
+
+    if (memory.secondPick === null) {
+        memory.secondPick = index;
+        memory.turns += 1;
+        const firstCard = memory.cards[memory.firstPick];
+        if (firstCard && firstCard.icon === card.icon) {
+            firstCard.matched = true;
+            card.matched = true;
+            memory.matches += 1;
+            memory.firstPick = null;
+            memory.secondPick = null;
+            renderMemoryBoard();
+            return;
+        }
+
+        memory.lock = true;
+        renderMemoryBoard();
+        window.setTimeout(() => {
+            const retryFirst = memory.cards[memory.firstPick];
+            const retrySecond = memory.cards[memory.secondPick];
+            if (retryFirst) {
+                retryFirst.revealed = false;
+            }
+            if (retrySecond) {
+                retrySecond.revealed = false;
+            }
+            memory.firstPick = null;
+            memory.secondPick = null;
+            memory.lock = false;
+            renderMemoryBoard();
+        }, 700);
+    }
+}
+
 function stopArcadeMusic() {
     const musicState = arcadeHub.music;
     if (musicState.timer) {
@@ -1366,7 +1524,16 @@ function updateMusicNowPlaying() {
     const labels = {
         dungeon: "Now playing: Dungeon Pulse",
         skyline: "Now playing: Skyline Drift",
-        ember: "Now playing: Ember Rush"
+        ember: "Now playing: Ember Rush",
+        midnight: "Now playing: Midnight Run",
+        glass: "Now playing: Glass Orbit",
+        storm: "Now playing: Storm Arcade",
+        pixel: "Now playing: Pixel Bloom",
+        moon: "Now playing: Moon Static",
+        sunrise: "Now playing: Sunrise Grid",
+        comet: "Now playing: Comet Tape",
+        royal: "Now playing: Royal Circuit",
+        harbor: "Now playing: Harbor Lights"
     };
     ui.arcadeMusicNowPlaying.textContent = labels[arcadeHub.music.activeTrack] || "Nothing playing yet.";
 }
@@ -1381,7 +1548,7 @@ function playArcadeTone(context, gainNode, frequency, duration, type = "sine") {
     noteGain.connect(gainNode);
     const now = context.currentTime;
     noteGain.gain.setValueAtTime(0.0001, now);
-    noteGain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+        noteGain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
     noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
     oscillator.start(now);
     oscillator.stop(now + duration + 0.05);
@@ -1392,7 +1559,7 @@ function ensureArcadeMusicContext() {
     if (!musicState.context) {
         musicState.context = new (window.AudioContext || window.webkitAudioContext)();
         musicState.gain = musicState.context.createGain();
-        musicState.gain.gain.value = 0.18;
+        musicState.gain.gain.value = 0.28;
         musicState.gain.connect(musicState.context.destination);
     }
     if (musicState.context.state === "suspended") {
@@ -1417,6 +1584,51 @@ function playArcadeTrack(trackId) {
             stepMs: 220,
             notes: [220, 261.63, 329.63, 392, 440, 392, 329.63, 261.63],
             type: "sawtooth"
+        },
+        midnight: {
+            stepMs: 360,
+            notes: [164.81, 196, 220, 261.63, 220, 196, 174.61, 196],
+            type: "triangle"
+        },
+        glass: {
+            stepMs: 280,
+            notes: [293.66, 329.63, 392, 493.88, 392, 329.63, 293.66, 261.63],
+            type: "sine"
+        },
+        storm: {
+            stepMs: 240,
+            notes: [130.81, 196, 146.83, 220, 164.81, 246.94, 196, 261.63],
+            type: "square"
+        },
+        pixel: {
+            stepMs: 180,
+            notes: [261.63, 392, 329.63, 523.25, 392, 659.25, 523.25, 783.99],
+            type: "square"
+        },
+        moon: {
+            stepMs: 480,
+            notes: [174.61, 220, 261.63, 220, 196, 220, 293.66, 220],
+            type: "sine"
+        },
+        sunrise: {
+            stepMs: 300,
+            notes: [220, 277.18, 329.63, 369.99, 440, 369.99, 329.63, 277.18],
+            type: "triangle"
+        },
+        comet: {
+            stepMs: 210,
+            notes: [246.94, 311.13, 369.99, 493.88, 369.99, 311.13, 293.66, 246.94],
+            type: "sawtooth"
+        },
+        royal: {
+            stepMs: 430,
+            notes: [196, 246.94, 293.66, 392, 349.23, 293.66, 261.63, 246.94],
+            type: "triangle"
+        },
+        harbor: {
+            stepMs: 340,
+            notes: [146.83, 196, 220, 293.66, 246.94, 220, 174.61, 196],
+            type: "sine"
         }
     };
     const track = tracks[trackId];
@@ -10337,6 +10549,12 @@ if (ui.menuChessButton) {
 if (ui.menuCheckersButton) {
     ui.menuCheckersButton.addEventListener("click", () => safelyRun("Open Checkers", () => openArcadeSection("checkers")));
 }
+if (ui.menuTicTacToeButton) {
+    ui.menuTicTacToeButton.addEventListener("click", () => safelyRun("Open Tic-Tac-Toe", () => openArcadeSection("tictactoe")));
+}
+if (ui.menuMemoryButton) {
+    ui.menuMemoryButton.addEventListener("click", () => safelyRun("Open Memory Match", () => openArcadeSection("memory")));
+}
 if (ui.menuMusicButton) {
     ui.menuMusicButton.addEventListener("click", () => safelyRun("Open Music", () => openArcadeSection("music")));
 }
@@ -10350,6 +10568,18 @@ if (ui.arcadeCheckersResetButton) {
     ui.arcadeCheckersResetButton.addEventListener("click", () => safelyRun("Reset Checkers", () => {
         arcadeHub.checkers = createInitialCheckersState();
         renderCheckersBoard();
+    }));
+}
+if (ui.arcadeTicTacToeResetButton) {
+    ui.arcadeTicTacToeResetButton.addEventListener("click", () => safelyRun("Reset Tic-Tac-Toe", () => {
+        arcadeHub.ticTacToe = createInitialTicTacToeState();
+        renderTicTacToeBoard();
+    }));
+}
+if (ui.arcadeMemoryResetButton) {
+    ui.arcadeMemoryResetButton.addEventListener("click", () => safelyRun("Reset Memory Match", () => {
+        arcadeHub.memory = createInitialMemoryState();
+        renderMemoryBoard();
     }));
 }
 if (ui.arcadeMusicStopButton) {
