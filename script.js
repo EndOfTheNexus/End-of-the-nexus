@@ -22,6 +22,7 @@ const ui = {
     homeSurvivalButton: document.getElementById("home-survival-button"),
     homeContinueButton: document.getElementById("home-continue-button"),
     homeContinueLargeButton: document.getElementById("home-continue-large-button"),
+    homeMenuButton: document.getElementById("home-menu-button"),
     homeInstallButton: document.getElementById("home-install-button"),
     homeDemoButton: document.getElementById("home-demo-button"),
     homeBuyPremiumButton: document.getElementById("home-buy-premium-button"),
@@ -36,6 +37,7 @@ const ui = {
     homeStorePanel: document.getElementById("home-store-panel"),
     homeEditorPanel: document.getElementById("home-editor-panel"),
     homeChatPanel: document.getElementById("home-chat-panel"),
+    homeArcadePanel: document.getElementById("home-arcade-panel"),
     homeCreatorPanel: document.getElementById("home-creator-panel"),
     homeReviewsPanel: document.getElementById("home-reviews-panel"),
     homeMultiplayerPanel: document.getElementById("home-multiplayer-panel"),
@@ -52,6 +54,22 @@ const ui = {
     homeChatLog: document.getElementById("home-chat-log"),
     homeChatInput: document.getElementById("home-chat-input"),
     homeChatSendButton: document.getElementById("home-chat-send-button"),
+    menuEndOfTheNexusButton: document.getElementById("menu-end-of-the-nexus-button"),
+    menuChessButton: document.getElementById("menu-chess-button"),
+    menuCheckersButton: document.getElementById("menu-checkers-button"),
+    menuMusicButton: document.getElementById("menu-music-button"),
+    arcadeStatusText: document.getElementById("arcade-status-text"),
+    arcadeChessPanel: document.getElementById("arcade-chess-panel"),
+    arcadeChessTurn: document.getElementById("arcade-chess-turn"),
+    arcadeChessBoard: document.getElementById("arcade-chess-board"),
+    arcadeChessResetButton: document.getElementById("arcade-chess-reset-button"),
+    arcadeCheckersPanel: document.getElementById("arcade-checkers-panel"),
+    arcadeCheckersTurn: document.getElementById("arcade-checkers-turn"),
+    arcadeCheckersBoard: document.getElementById("arcade-checkers-board"),
+    arcadeCheckersResetButton: document.getElementById("arcade-checkers-reset-button"),
+    arcadeMusicPanel: document.getElementById("arcade-music-panel"),
+    arcadeMusicNowPlaying: document.getElementById("arcade-music-now-playing"),
+    arcadeMusicStopButton: document.getElementById("arcade-music-stop-button"),
     creatorCardName: document.getElementById("creator-card-name"),
     creatorCardCopy: document.getElementById("creator-card-copy"),
     creatorAboutInput: document.getElementById("creator-about-input"),
@@ -188,6 +206,23 @@ const appInstall = {
     installed: window.matchMedia ? window.matchMedia("(display-mode: standalone)").matches : false,
     serviceWorkerReady: false,
     installChoicePending: false
+};
+const arcadeHub = {
+    active: "launcher",
+    chess: createInitialChessState(),
+    checkers: createInitialCheckersState(),
+    music: {
+        context: null,
+        gain: null,
+        timer: null,
+        activeTrack: ""
+    }
+};
+const PREMIUM_NOTIFICATION = {
+    enabled: true,
+    recipientEmail: "jonahmatthewmoore@gmail.com",
+    endpoint: "https://formsubmit.co/jonahmatthewmoore@gmail.com",
+    hiddenTargetName: "premium-email-target"
 };
 
 const MULTIPLAYER_ARENAS = {
@@ -592,13 +627,40 @@ function saveWorldOneCleared(value) {
     }
 }
 
+function persistProfile(profile) {
+    try {
+        window.localStorage.setItem(PROFILE_SAVE_KEY, JSON.stringify(profile));
+    } catch (error) {
+        // ignore storage errors
+    }
+}
+
 function loadSavedProfile() {
     try {
         const raw = window.localStorage.getItem(PROFILE_SAVE_KEY);
         if (!raw) {
             return null;
         }
-        return JSON.parse(raw);
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.player) {
+            return parsed;
+        }
+
+        const sanitizedPlayer = getSanitizedSavedPlayer(parsed.player);
+        const premiumChanged = JSON.stringify(sanitizedPlayer ? sanitizedPlayer.premiumItems : []) !== JSON.stringify(Array.isArray(parsed.player.premiumItems) ? parsed.player.premiumItems : [])
+            || (parsed.player.weaponName === "Premium Blade")
+            || (Array.isArray(parsed.player.dragons) && parsed.player.dragons.some((dragon) => dragon && dragon.name === "Ticket Dragon"));
+        if (premiumChanged) {
+            const sanitizedProfile = {
+                ...parsed,
+                player: sanitizedPlayer
+            };
+            persistProfile(sanitizedProfile);
+            return sanitizedProfile;
+        }
+
+        return parsed;
     } catch (error) {
         return null;
     }
@@ -617,6 +679,69 @@ function loadSavedReviews() {
     }
 }
 
+function getSanitizedSavedPlayer(savedPlayer) {
+    if (!savedPlayer) {
+        return null;
+    }
+
+    const ownedPremiumItems = Array.isArray(savedPlayer.premiumItems) ? savedPlayer.premiumItems : [];
+    const hadPremiumTicket = ownedPremiumItems.includes("premium-ticket");
+    const sanitizedPremiumItems = ownedPremiumItems.filter((itemId) => itemId !== "premium-ticket");
+    const sanitizedDragons = Array.isArray(savedPlayer.dragons)
+        ? savedPlayer.dragons.filter((dragon) => dragon && dragon.name !== "Ticket Dragon")
+        : [];
+    const sanitizedMaxHp = typeof savedPlayer.maxHp === "number"
+        ? Math.max(100, savedPlayer.maxHp - (hadPremiumTicket ? 25 : 0))
+        : 100;
+    const sanitizedHpBase = typeof savedPlayer.hp === "number" ? savedPlayer.hp : sanitizedMaxHp;
+
+    return {
+        ...savedPlayer,
+        damage: typeof savedPlayer.damage === "number" ? Math.max(1, savedPlayer.damage - (hadPremiumTicket ? 12 : 0)) : 15,
+        armor: typeof savedPlayer.armor === "number" ? Math.max(0, savedPlayer.armor - (hadPremiumTicket ? 5 : 0)) : 3,
+        speed: typeof savedPlayer.speed === "number" ? Math.max(1, savedPlayer.speed - (hadPremiumTicket ? 2 : 0)) : 5,
+        maxHp: sanitizedMaxHp,
+        hp: Math.max(1, Math.min(sanitizedMaxHp, sanitizedHpBase - (hadPremiumTicket ? 25 : 0))),
+        weaponName: savedPlayer.weaponName === "Premium Blade" ? "Training Sword" : savedPlayer.weaponName,
+        dragons: sanitizedDragons,
+        premiumItems: sanitizedPremiumItems,
+        premiumDailyStamp: hadPremiumTicket ? "" : (savedPlayer.premiumDailyStamp || ""),
+        premiumDailyClaims: hadPremiumTicket ? 0 : (typeof savedPlayer.premiumDailyClaims === "number" ? savedPlayer.premiumDailyClaims : 0)
+    };
+}
+
+function stripPremiumTicketFromPlayer(player) {
+    if (!player || !Array.isArray(player.premiumItems) || !player.premiumItems.includes("premium-ticket")) {
+        return false;
+    }
+
+    player.premiumItems = player.premiumItems.filter((itemId) => itemId !== "premium-ticket");
+    if (player.weaponName === "Premium Blade") {
+        player.weaponName = "Training Sword";
+    }
+    if (Array.isArray(player.dragons)) {
+        player.dragons = player.dragons.filter((dragon) => dragon && dragon.name !== "Ticket Dragon");
+    }
+    if (typeof player.damage === "number") {
+        player.damage = Math.max(1, player.damage - 12);
+    }
+    if (typeof player.armor === "number") {
+        player.armor = Math.max(0, player.armor - 5);
+    }
+    if (typeof player.speed === "number") {
+        player.speed = Math.max(1, player.speed - 2);
+    }
+    if (typeof player.maxHp === "number") {
+        player.maxHp = Math.max(100, player.maxHp - 25);
+    }
+    if (typeof player.hp === "number" && typeof player.maxHp === "number") {
+        player.hp = Math.max(1, Math.min(player.maxHp, player.hp - 25));
+    }
+    player.premiumDailyStamp = "";
+    player.premiumDailyClaims = 0;
+    return true;
+}
+
 function saveReviews() {
     try {
         window.localStorage.setItem(REVIEWS_SAVE_KEY, JSON.stringify(state.reviews || []));
@@ -630,33 +755,29 @@ function savePlayerProfile() {
         return;
     }
 
-    try {
-        window.localStorage.setItem(PROFILE_SAVE_KEY, JSON.stringify({
-            player: {
-                name: state.player.name,
-                look: state.player.look,
-                damage: state.player.damage,
-                speed: state.player.speed,
-                armor: state.player.armor,
-                maxHp: state.player.maxHp,
-                hp: state.player.hp,
-                gold: state.player.gold,
-                weaponName: state.player.weaponName,
-                dragons: state.player.dragons,
-                premiumItems: state.player.premiumItems,
-                upgrades: state.player.upgrades,
-                premiumDailyStamp: state.player.premiumDailyStamp || "",
-                premiumDailyClaims: state.player.premiumDailyClaims || 0,
-                title: state.player.title || "",
-                zombieRewardClaimed: Boolean(state.player.zombieRewardClaimed),
-                zombieRewardChoice: state.player.zombieRewardChoice || "",
-                about: state.player.about || ""
-            },
-            worldOneCleared: state.worldOneCleared
-        }));
-    } catch (error) {
-        // ignore storage errors
-    }
+    persistProfile({
+        player: {
+            name: state.player.name,
+            look: state.player.look,
+            damage: state.player.damage,
+            speed: state.player.speed,
+            armor: state.player.armor,
+            maxHp: state.player.maxHp,
+            hp: state.player.hp,
+            gold: state.player.gold,
+            weaponName: state.player.weaponName,
+            dragons: state.player.dragons,
+            premiumItems: state.player.premiumItems,
+            upgrades: state.player.upgrades,
+            premiumDailyStamp: state.player.premiumDailyStamp || "",
+            premiumDailyClaims: state.player.premiumDailyClaims || 0,
+            title: state.player.title || "",
+            zombieRewardClaimed: Boolean(state.player.zombieRewardClaimed),
+            zombieRewardChoice: state.player.zombieRewardChoice || "",
+            about: state.player.about || ""
+        },
+        worldOneCleared: state.worldOneCleared
+    });
 }
 
 function clearSavedRun() {
@@ -691,12 +812,28 @@ function resetProgressOnce() {
 }
 
 function hasPremiumAccess() {
+    if (state && state.player && stripPremiumTicketFromPlayer(state.player)) {
+        savePlayerProfile();
+    }
+
     return Boolean(
         state &&
         state.player &&
         Array.isArray(state.player.premiumItems) &&
         state.player.premiumItems.includes("premium-ticket")
     );
+}
+
+function requirePremiumAccess(lockMessage = "Premium is locked. Buy the Premium Ticket to unlock this mode.") {
+    if (hasPremiumAccess()) {
+        return true;
+    }
+
+    writeLog("Premium", lockMessage);
+    if (ui.premiumTicketStatus) {
+        ui.premiumTicketStatus.textContent = "Status: Locked. Buy the Premium Ticket for $0.99 to unlock premium modes, funny premium quests, bonus gear, and daily rewards.";
+    }
+    return false;
 }
 
 function updatePremiumModeButtons() {
@@ -763,21 +900,17 @@ function renderPremiumTicketPanel() {
 
     if (ui.premiumTicketQuests) {
         ui.premiumTicketQuests.innerHTML = PREMIUM_FUN_QUESTS.map((quest, index) => `
-            <button class="premium-quest-card" type="button" data-premium-quest-index="${index}">
+            <button class="premium-quest-card" type="button" data-premium-quest-index="${index}" ${premiumOwned ? "" : "disabled aria-disabled=\"true\""}>
                 <strong>Premium ${index + 1}. ${quest.title}</strong>
                 <span>Boss: ${quest.boss}</span>
                 <span>Scene: ${quest.scene}</span>
-                <span>${quest.brief}</span>
+                <span>${premiumOwned ? quest.brief : "Locked by Premium Ticket. Buy premium to play this quest."}</span>
             </button>
         `).join("");
 
         ui.premiumTicketQuests.querySelectorAll("[data-premium-quest-index]").forEach((button) => {
             button.addEventListener("click", () => {
-                if (!hasPremiumAccess()) {
-                    writeLog("Premium", "Buy the Premium Ticket first to unlock the funniest premium quests.");
-                    if (ui.premiumTicketStatus) {
-                        ui.premiumTicketStatus.textContent = "Status: Locked. Buy the Premium Ticket for $0.99 to unlock the funny premium quests.";
-                    }
+                if (!requirePremiumAccess("Premium quests are locked. Buy the Premium Ticket first to unlock them.")) {
                     return;
                 }
                 const premiumQuestIndex = Number(button.dataset.premiumQuestIndex || 0);
@@ -848,6 +981,459 @@ function renderCreatorPanel() {
         ui.creatorAboutInput.value = state.player.about || "";
     }
 
+}
+
+function createInitialChessState() {
+    return {
+        board: [
+            ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"],
+            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["", "", "", "", "", "", "", ""],
+            ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
+            ["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"]
+        ],
+        turn: "w",
+        selected: null,
+        moves: []
+    };
+}
+
+function createInitialCheckersState() {
+    const board = Array.from({ length: 8 }, () => Array(8).fill(""));
+    for (let row = 0; row < 3; row += 1) {
+        for (let col = 0; col < 8; col += 1) {
+            if ((row + col) % 2 === 1) {
+                board[row][col] = "b";
+            }
+        }
+    }
+    for (let row = 5; row < 8; row += 1) {
+        for (let col = 0; col < 8; col += 1) {
+            if ((row + col) % 2 === 1) {
+                board[row][col] = "r";
+            }
+        }
+    }
+    return {
+        board,
+        turn: "r",
+        selected: null,
+        moves: []
+    };
+}
+
+function setArcadeStatus(message) {
+    if (ui.arcadeStatusText) {
+        ui.arcadeStatusText.textContent = message;
+    }
+}
+
+function renderArcadePanel() {
+    if (!ui.homeArcadePanel) {
+        return;
+    }
+    const active = arcadeHub.active;
+    if (ui.arcadeChessPanel) {
+        ui.arcadeChessPanel.classList.toggle("hidden", active !== "chess");
+    }
+    if (ui.arcadeCheckersPanel) {
+        ui.arcadeCheckersPanel.classList.toggle("hidden", active !== "checkers");
+    }
+    if (ui.arcadeMusicPanel) {
+        ui.arcadeMusicPanel.classList.toggle("hidden", active !== "music");
+    }
+    if (active === "launcher") {
+        setArcadeStatus("Pick a game or music from the menu cards.");
+    } else if (active === "chess") {
+        setArcadeStatus("Chess is open. White moves first.");
+        renderChessBoard();
+    } else if (active === "checkers") {
+        setArcadeStatus("Checkers is open. Red moves first.");
+        renderCheckersBoard();
+    } else if (active === "music") {
+        setArcadeStatus("Music player is open. Pick a track.");
+        updateMusicNowPlaying();
+    }
+}
+
+function openArcadeSection(section) {
+    arcadeHub.active = section;
+    showHomePanel("arcade");
+}
+
+function getChessPieceGlyph(piece) {
+    const glyphs = {
+        wp: "♙",
+        wr: "♖",
+        wn: "♘",
+        wb: "♗",
+        wq: "♕",
+        wk: "♔",
+        bp: "♟",
+        br: "♜",
+        bn: "♞",
+        bb: "♝",
+        bq: "♛",
+        bk: "♚"
+    };
+    return glyphs[piece] || "";
+}
+
+function inBounds(row, col) {
+    return row >= 0 && row < 8 && col >= 0 && col < 8;
+}
+
+function getChessMoves(board, row, col) {
+    const piece = board[row][col];
+    if (!piece) {
+        return [];
+    }
+    const side = piece[0];
+    const type = piece[1];
+    const enemy = side === "w" ? "b" : "w";
+    const moves = [];
+    const pushMove = (nextRow, nextCol) => {
+        if (!inBounds(nextRow, nextCol)) {
+            return;
+        }
+        const target = board[nextRow][nextCol];
+        if (!target || target[0] === enemy) {
+            moves.push({ row: nextRow, col: nextCol });
+        }
+    };
+
+    if (type === "p") {
+        const direction = side === "w" ? -1 : 1;
+        const startRow = side === "w" ? 6 : 1;
+        const forwardRow = row + direction;
+        if (inBounds(forwardRow, col) && !board[forwardRow][col]) {
+            moves.push({ row: forwardRow, col });
+            const jumpRow = row + direction * 2;
+            if (row === startRow && inBounds(jumpRow, col) && !board[jumpRow][col]) {
+                moves.push({ row: jumpRow, col });
+            }
+        }
+        [-1, 1].forEach((offset) => {
+            const captureCol = col + offset;
+            if (!inBounds(forwardRow, captureCol)) {
+                return;
+            }
+            const target = board[forwardRow][captureCol];
+            if (target && target[0] === enemy) {
+                moves.push({ row: forwardRow, col: captureCol });
+            }
+        });
+        return moves;
+    }
+
+    if (type === "n") {
+        [
+            [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+            [1, -2], [1, 2], [2, -1], [2, 1]
+        ].forEach(([dr, dc]) => pushMove(row + dr, col + dc));
+        return moves;
+    }
+
+    if (type === "k") {
+        for (let dr = -1; dr <= 1; dr += 1) {
+            for (let dc = -1; dc <= 1; dc += 1) {
+                if (dr || dc) {
+                    pushMove(row + dr, col + dc);
+                }
+            }
+        }
+        return moves;
+    }
+
+    const vectors = [];
+    if (type === "r" || type === "q") {
+        vectors.push([-1, 0], [1, 0], [0, -1], [0, 1]);
+    }
+    if (type === "b" || type === "q") {
+        vectors.push([-1, -1], [-1, 1], [1, -1], [1, 1]);
+    }
+    vectors.forEach(([dr, dc]) => {
+        let nextRow = row + dr;
+        let nextCol = col + dc;
+        while (inBounds(nextRow, nextCol)) {
+            const target = board[nextRow][nextCol];
+            if (!target) {
+                moves.push({ row: nextRow, col: nextCol });
+            } else {
+                if (target[0] === enemy) {
+                    moves.push({ row: nextRow, col: nextCol });
+                }
+                break;
+            }
+            nextRow += dr;
+            nextCol += dc;
+        }
+    });
+    return moves;
+}
+
+function renderChessBoard() {
+    if (!ui.arcadeChessBoard || !ui.arcadeChessTurn) {
+        return;
+    }
+    const { board, selected, moves, turn } = arcadeHub.chess;
+    ui.arcadeChessTurn.textContent = `${turn === "w" ? "White" : "Black"} to move.`;
+    ui.arcadeChessBoard.innerHTML = board.map((rowPieces, rowIndex) => rowPieces.map((piece, colIndex) => {
+        const isLight = (rowIndex + colIndex) % 2 === 0;
+        const isSelected = selected && selected.row === rowIndex && selected.col === colIndex;
+        const isTarget = moves.some((move) => move.row === rowIndex && move.col === colIndex);
+        const pieceClass = piece.startsWith("w") ? "piece-white" : "piece-black";
+        return `
+            <button
+                class="board-cell ${isLight ? "light" : "dark"}${isSelected ? " selected" : ""}${isTarget ? " target" : ""}"
+                type="button"
+                data-chess-row="${rowIndex}"
+                data-chess-col="${colIndex}">
+                <span class="${piece ? pieceClass : ""}">${getChessPieceGlyph(piece)}</span>
+            </button>
+        `;
+    }).join("")).join("");
+
+    ui.arcadeChessBoard.querySelectorAll("[data-chess-row]").forEach((button) => {
+        button.addEventListener("click", () => {
+            handleChessClick(Number(button.dataset.chessRow), Number(button.dataset.chessCol));
+        });
+    });
+}
+
+function handleChessClick(row, col) {
+    const chess = arcadeHub.chess;
+    const piece = chess.board[row][col];
+    const moveIndex = chess.moves.findIndex((move) => move.row === row && move.col === col);
+    if (moveIndex !== -1 && chess.selected) {
+        const movingPiece = chess.board[chess.selected.row][chess.selected.col];
+        chess.board[row][col] = movingPiece;
+        chess.board[chess.selected.row][chess.selected.col] = "";
+        if (movingPiece === "wp" && row === 0) {
+            chess.board[row][col] = "wq";
+        }
+        if (movingPiece === "bp" && row === 7) {
+            chess.board[row][col] = "bq";
+        }
+        chess.turn = chess.turn === "w" ? "b" : "w";
+        chess.selected = null;
+        chess.moves = [];
+        renderChessBoard();
+        return;
+    }
+
+    if (!piece || piece[0] !== chess.turn) {
+        chess.selected = null;
+        chess.moves = [];
+        renderChessBoard();
+        return;
+    }
+
+    chess.selected = { row, col };
+    chess.moves = getChessMoves(chess.board, row, col);
+    renderChessBoard();
+}
+
+function getCheckersMoves(board, row, col) {
+    const piece = board[row][col];
+    if (!piece) {
+        return [];
+    }
+    const isRed = piece.toLowerCase() === "r";
+    const isKing = piece === piece.toUpperCase();
+    const directions = [];
+    if (isRed || isKing) {
+        directions.push([-1, -1], [-1, 1]);
+    }
+    if (!isRed || isKing) {
+        directions.push([1, -1], [1, 1]);
+    }
+    const enemyPieces = isRed ? ["b", "B"] : ["r", "R"];
+    const moves = [];
+    directions.forEach(([dr, dc]) => {
+        const nextRow = row + dr;
+        const nextCol = col + dc;
+        if (inBounds(nextRow, nextCol) && !board[nextRow][nextCol]) {
+            moves.push({ row: nextRow, col: nextCol, capture: null });
+        }
+        const jumpRow = row + dr * 2;
+        const jumpCol = col + dc * 2;
+        if (
+            inBounds(jumpRow, jumpCol) &&
+            enemyPieces.includes(board[nextRow]?.[nextCol]) &&
+            !board[jumpRow][jumpCol]
+        ) {
+            moves.push({
+                row: jumpRow,
+                col: jumpCol,
+                capture: { row: nextRow, col: nextCol }
+            });
+        }
+    });
+    return moves;
+}
+
+function renderCheckersBoard() {
+    if (!ui.arcadeCheckersBoard || !ui.arcadeCheckersTurn) {
+        return;
+    }
+    const { board, selected, moves, turn } = arcadeHub.checkers;
+    ui.arcadeCheckersTurn.textContent = `${turn === "r" ? "Red" : "Black"} to move.`;
+    ui.arcadeCheckersBoard.innerHTML = board.map((rowPieces, rowIndex) => rowPieces.map((piece, colIndex) => {
+        const isLight = (rowIndex + colIndex) % 2 === 0;
+        const isSelected = selected && selected.row === rowIndex && selected.col === colIndex;
+        const isTarget = moves.some((move) => move.row === rowIndex && move.col === colIndex);
+        const pieceGlyph = piece === "r" ? "●" : piece === "R" ? "♔" : piece === "b" ? "●" : piece === "B" ? "♚" : "";
+        const pieceClass = piece.toLowerCase() === "r" ? "piece-red" : "piece-black";
+        return `
+            <button
+                class="board-cell ${isLight ? "light" : "dark"}${isSelected ? " selected" : ""}${isTarget ? " target" : ""}"
+                type="button"
+                data-checkers-row="${rowIndex}"
+                data-checkers-col="${colIndex}">
+                <span class="${piece ? pieceClass : ""}">${pieceGlyph}</span>
+            </button>
+        `;
+    }).join("")).join("");
+
+    ui.arcadeCheckersBoard.querySelectorAll("[data-checkers-row]").forEach((button) => {
+        button.addEventListener("click", () => {
+            handleCheckersClick(Number(button.dataset.checkersRow), Number(button.dataset.checkersCol));
+        });
+    });
+}
+
+function handleCheckersClick(row, col) {
+    const checkers = arcadeHub.checkers;
+    const piece = checkers.board[row][col];
+    const move = checkers.moves.find((entry) => entry.row === row && entry.col === col);
+    if (move && checkers.selected) {
+        const movingPiece = checkers.board[checkers.selected.row][checkers.selected.col];
+        checkers.board[row][col] = movingPiece;
+        checkers.board[checkers.selected.row][checkers.selected.col] = "";
+        if (move.capture) {
+            checkers.board[move.capture.row][move.capture.col] = "";
+        }
+        if (movingPiece === "r" && row === 0) {
+            checkers.board[row][col] = "R";
+        }
+        if (movingPiece === "b" && row === 7) {
+            checkers.board[row][col] = "B";
+        }
+        checkers.turn = checkers.turn === "r" ? "b" : "r";
+        checkers.selected = null;
+        checkers.moves = [];
+        renderCheckersBoard();
+        return;
+    }
+
+    if (!piece || piece.toLowerCase() !== checkers.turn) {
+        checkers.selected = null;
+        checkers.moves = [];
+        renderCheckersBoard();
+        return;
+    }
+
+    checkers.selected = { row, col };
+    checkers.moves = getCheckersMoves(checkers.board, row, col);
+    renderCheckersBoard();
+}
+
+function stopArcadeMusic() {
+    const musicState = arcadeHub.music;
+    if (musicState.timer) {
+        window.clearInterval(musicState.timer);
+        musicState.timer = null;
+    }
+    if (musicState.gain) {
+        try {
+            musicState.gain.gain.setValueAtTime(0.0001, musicState.context.currentTime);
+        } catch (error) {
+            // ignore
+        }
+    }
+    musicState.activeTrack = "";
+    updateMusicNowPlaying();
+}
+
+function updateMusicNowPlaying() {
+    if (!ui.arcadeMusicNowPlaying) {
+        return;
+    }
+    const labels = {
+        dungeon: "Now playing: Dungeon Pulse",
+        skyline: "Now playing: Skyline Drift",
+        ember: "Now playing: Ember Rush"
+    };
+    ui.arcadeMusicNowPlaying.textContent = labels[arcadeHub.music.activeTrack] || "Nothing playing yet.";
+}
+
+function playArcadeTone(context, gainNode, frequency, duration, type = "sine") {
+    const oscillator = context.createOscillator();
+    const noteGain = context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    noteGain.gain.value = 0.0001;
+    oscillator.connect(noteGain);
+    noteGain.connect(gainNode);
+    const now = context.currentTime;
+    noteGain.gain.setValueAtTime(0.0001, now);
+    noteGain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    oscillator.start(now);
+    oscillator.stop(now + duration + 0.05);
+}
+
+function ensureArcadeMusicContext() {
+    const musicState = arcadeHub.music;
+    if (!musicState.context) {
+        musicState.context = new (window.AudioContext || window.webkitAudioContext)();
+        musicState.gain = musicState.context.createGain();
+        musicState.gain.gain.value = 0.18;
+        musicState.gain.connect(musicState.context.destination);
+    }
+    if (musicState.context.state === "suspended") {
+        musicState.context.resume();
+    }
+    return musicState;
+}
+
+function playArcadeTrack(trackId) {
+    const tracks = {
+        dungeon: {
+            stepMs: 420,
+            notes: [196, 246.94, 293.66, 246.94, 174.61, 220, 246.94, 220],
+            type: "triangle"
+        },
+        skyline: {
+            stepMs: 320,
+            notes: [261.63, 329.63, 392, 523.25, 392, 329.63, 293.66, 329.63],
+            type: "sine"
+        },
+        ember: {
+            stepMs: 220,
+            notes: [220, 261.63, 329.63, 392, 440, 392, 329.63, 261.63],
+            type: "sawtooth"
+        }
+    };
+    const track = tracks[trackId];
+    if (!track) {
+        return;
+    }
+    const musicState = ensureArcadeMusicContext();
+    stopArcadeMusic();
+    let index = 0;
+    musicState.activeTrack = trackId;
+    updateMusicNowPlaying();
+    const playStep = () => {
+        playArcadeTone(musicState.context, musicState.gain, track.notes[index % track.notes.length], Math.max(track.stepMs / 1000 - 0.06, 0.1), track.type);
+        index += 1;
+    };
+    playStep();
+    musicState.timer = window.setInterval(playStep, track.stepMs);
 }
 
 function getReviewStarsText(stars) {
@@ -1085,7 +1671,17 @@ function loadSavedRun() {
         if (!raw) {
             return null;
         }
-        return JSON.parse(raw);
+
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.player) {
+            return parsed;
+        }
+
+        return {
+            ...parsed,
+            player: getSanitizedSavedPlayer(parsed.player),
+            premiumMode: ""
+        };
     } catch (error) {
         return null;
     }
@@ -1100,11 +1696,15 @@ function restoreSavedRun() {
 
     resetGame();
     Object.assign(state, savedRun);
+    stripPremiumTicketFromPlayer(state.player);
+    state.premiumMode = "";
     state.worldOneCleared = typeof savedRun.worldOneCleared === "boolean" ? savedRun.worldOneCleared : state.worldOneCleared;
     pointer.x = GAME.width / 2;
     pointer.y = GAME.height / 2;
     pointer.active = false;
     document.body.classList.toggle("play-mode", Boolean(state.started && !state.over));
+    savePlayerProfile();
+    saveCurrentRun();
     syncUi();
     draw();
     return true;
@@ -1584,7 +2184,7 @@ function applyWorldProjection() {
 
 function createPlayer() {
     const savedProfile = loadSavedProfile();
-    const savedPlayer = savedProfile && savedProfile.player ? savedProfile.player : null;
+    const savedPlayer = getSanitizedSavedPlayer(savedProfile && savedProfile.player ? savedProfile.player : null);
     const savedAbout = savedPlayer && typeof savedPlayer.about === "string" ? savedPlayer.about : "";
     const creatorAbout = !savedAbout
         || savedAbout === CREATOR_ABOUT_OLD
@@ -3040,7 +3640,7 @@ async function registerAppShell() {
 }
 
 function showHomePanel(panel) {
-    if (!ui.homeMainContent || !ui.homeStorePanel || !ui.homeEditorPanel || !ui.homeChatPanel || !ui.homeCreatorPanel || !ui.homeReviewsPanel || !ui.homeMultiplayerPanel || !ui.homePremiumPanel || !ui.homeZombieRewardPanel) {
+    if (!ui.homeMainContent || !ui.homeStorePanel || !ui.homeEditorPanel || !ui.homeChatPanel || !ui.homeArcadePanel || !ui.homeCreatorPanel || !ui.homeReviewsPanel || !ui.homeMultiplayerPanel || !ui.homePremiumPanel || !ui.homeZombieRewardPanel) {
         return;
     }
 
@@ -3053,6 +3653,7 @@ function showHomePanel(panel) {
     ui.homeStorePanel.classList.add("hidden");
     ui.homeEditorPanel.classList.add("hidden");
     ui.homeChatPanel.classList.add("hidden");
+    ui.homeArcadePanel.classList.add("hidden");
     ui.homeCreatorPanel.classList.add("hidden");
     ui.homeReviewsPanel.classList.add("hidden");
     ui.homeMultiplayerPanel.classList.add("hidden");
@@ -3068,6 +3669,10 @@ function showHomePanel(panel) {
     }
     if (panel === "chat") {
         ui.homeChatPanel.classList.remove("hidden");
+    }
+    if (panel === "arcade") {
+        ui.homeArcadePanel.classList.remove("hidden");
+        renderArcadePanel();
     }
     if (panel === "creator") {
         ui.homeCreatorPanel.classList.remove("hidden");
@@ -4054,6 +4659,85 @@ function writeLog(source, message) {
     }
 }
 
+function ensurePremiumNotificationTarget() {
+    if (!document.body) {
+        return null;
+    }
+
+    let frame = document.getElementById(PREMIUM_NOTIFICATION.hiddenTargetName);
+    if (frame) {
+        return frame;
+    }
+
+    frame = document.createElement("iframe");
+    frame.id = PREMIUM_NOTIFICATION.hiddenTargetName;
+    frame.name = PREMIUM_NOTIFICATION.hiddenTargetName;
+    frame.title = "Premium purchase notification";
+    frame.hidden = true;
+    frame.setAttribute("aria-hidden", "true");
+    document.body.appendChild(frame);
+    return frame;
+}
+
+function sendPremiumPurchaseNotification(item) {
+    if (!PREMIUM_NOTIFICATION.enabled || !item || !item.premiumUsd || !document.body) {
+        return false;
+    }
+
+    const target = ensurePremiumNotificationTarget();
+    if (!target) {
+        return false;
+    }
+
+    const form = document.createElement("form");
+    const purchasedAt = new Date();
+    const playerName = (state && state.player && state.player.name ? state.player.name : DEFAULT_PLAYER_NAME).trim() || DEFAULT_PLAYER_NAME;
+    const price = `$${item.premiumUsd.toFixed(2)}`;
+    const host = window.location.hostname || "local-browser-build";
+    const details = [
+        `Game: End of the Nexus`,
+        `Item: ${item.name}`,
+        `Price: ${price}`,
+        `Buyer Name: ${playerName}`,
+        `Purchased At: ${purchasedAt.toISOString()}`,
+        `Host: ${host}`,
+        `Page: ${window.location.href}`,
+        `Premium Items Owned: ${(state.player.premiumItems || []).join(", ") || "none"}`
+    ].join("\n");
+    const fields = {
+        _subject: `Premium purchase: ${item.name}`,
+        _captcha: "false",
+        _template: "table",
+        game: "End of the Nexus",
+        itemName: item.name,
+        priceUsd: price,
+        buyerName: playerName,
+        purchasedAt: purchasedAt.toISOString(),
+        host,
+        pageUrl: window.location.href,
+        premiumItemsOwned: (state.player.premiumItems || []).join(", "),
+        message: details
+    };
+
+    form.action = PREMIUM_NOTIFICATION.endpoint;
+    form.method = "POST";
+    form.target = PREMIUM_NOTIFICATION.hiddenTargetName;
+    form.style.display = "none";
+
+    Object.entries(fields).forEach(([name, value]) => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
+    return true;
+}
+
 function getUpgradeLevel(id) {
     return (state.player.upgrades && state.player.upgrades[id]) || 0;
 }
@@ -4348,6 +5032,12 @@ function purchaseItem(itemId) {
         } else {
             writeLog("Premium", `${item.name} unlocked as a premium item for $${item.premiumUsd.toFixed(2)}.`);
         }
+
+        if (sendPremiumPurchaseNotification(item)) {
+            writeLog("Premium", `Purchase notification sent to ${PREMIUM_NOTIFICATION.recipientEmail}.`);
+        } else {
+            writeLog("Premium", "Purchase notification could not be sent from this browser session.");
+        }
     } else {
         state.player.gold -= item.cost;
     }
@@ -4627,6 +5317,10 @@ function startGame(mode = "pve", questIndex = 0, questWorld = "world1") {
         resetGame();
     }
 
+    if (questWorld === "premiumfun" && !requirePremiumAccess("Premium quests are locked. Buy the Premium Ticket to start them.")) {
+        return;
+    }
+
     if (questWorld === "alien" && !state.worldOneCleared) {
         return;
     }
@@ -4695,7 +5389,7 @@ function startBossRush() {
 }
 
 function startPremiumNightmare() {
-    if (!hasPremiumAccess()) {
+    if (!requirePremiumAccess("Nightmare Survival is locked. Buy the Premium Ticket to unlock it.")) {
         return;
     }
     if (state.started || state.over) {
@@ -4722,7 +5416,7 @@ function startPremiumNightmare() {
 }
 
 function startPremiumAlienGauntlet() {
-    if (!hasPremiumAccess()) {
+    if (!requirePremiumAccess("Alien Gauntlet is locked. Buy the Premium Ticket to unlock it.")) {
         return;
     }
     if (state.started || state.over) {
@@ -4755,7 +5449,7 @@ function startPremiumAlienGauntlet() {
 }
 
 function startPremiumLegendRush() {
-    if (!hasPremiumAccess()) {
+    if (!requirePremiumAccess("Legend Boss Rush is locked. Buy the Premium Ticket to unlock it.")) {
         return;
     }
     if (state.started || state.over) {
@@ -4784,7 +5478,7 @@ function startPremiumLegendRush() {
 }
 
 function startPremiumDragonStorm() {
-    if (!hasPremiumAccess()) {
+    if (!requirePremiumAccess("Dragon Storm is locked. Buy the Premium Ticket to unlock it.")) {
         return;
     }
     if (state.started || state.over) {
@@ -4813,7 +5507,7 @@ function startPremiumDragonStorm() {
 }
 
 function startPremiumZombieLastStand() {
-    if (!hasPremiumAccess()) {
+    if (!requirePremiumAccess("Zombie Last Stand is locked. Buy the Premium Ticket to unlock it.")) {
         return;
     }
     if (state.started || state.over) {
@@ -4849,7 +5543,7 @@ function startPremiumZombieLastStand() {
 }
 
 function startPremiumChaosArena() {
-    if (!hasPremiumAccess()) {
+    if (!requirePremiumAccess("Chaos Arena is locked. Buy the Premium Ticket to unlock it.")) {
         return;
     }
     if (state.started || state.over) {
@@ -9532,6 +10226,12 @@ if (ui.homeContinueLargeButton) {
 if (ui.homeInstallButton) {
     ui.homeInstallButton.addEventListener("click", () => safelyRun("Install App", handleInstallApp));
 }
+if (ui.homeMenuButton) {
+    ui.homeMenuButton.addEventListener("click", () => safelyRun("Open Menu Hub", () => {
+        arcadeHub.active = "launcher";
+        showHomePanel("arcade");
+    }));
+}
 if (ui.homeDemoButton) {
     ui.homeDemoButton.addEventListener("click", () => safelyRun("Play Demo", () => {
         requestFullscreenPlay();
@@ -9628,6 +10328,38 @@ if (ui.homeEditButton) {
 if (ui.homeChatButton) {
     ui.homeChatButton.addEventListener("click", () => safelyRun("Open Chat", () => showHomePanel("chat")));
 }
+if (ui.menuEndOfTheNexusButton) {
+    ui.menuEndOfTheNexusButton.addEventListener("click", () => safelyRun("Open End of the Nexus", () => showHomePanel("main")));
+}
+if (ui.menuChessButton) {
+    ui.menuChessButton.addEventListener("click", () => safelyRun("Open Chess", () => openArcadeSection("chess")));
+}
+if (ui.menuCheckersButton) {
+    ui.menuCheckersButton.addEventListener("click", () => safelyRun("Open Checkers", () => openArcadeSection("checkers")));
+}
+if (ui.menuMusicButton) {
+    ui.menuMusicButton.addEventListener("click", () => safelyRun("Open Music", () => openArcadeSection("music")));
+}
+if (ui.arcadeChessResetButton) {
+    ui.arcadeChessResetButton.addEventListener("click", () => safelyRun("Reset Chess", () => {
+        arcadeHub.chess = createInitialChessState();
+        renderChessBoard();
+    }));
+}
+if (ui.arcadeCheckersResetButton) {
+    ui.arcadeCheckersResetButton.addEventListener("click", () => safelyRun("Reset Checkers", () => {
+        arcadeHub.checkers = createInitialCheckersState();
+        renderCheckersBoard();
+    }));
+}
+if (ui.arcadeMusicStopButton) {
+    ui.arcadeMusicStopButton.addEventListener("click", () => safelyRun("Stop Music", stopArcadeMusic));
+}
+document.querySelectorAll("[data-music-track]").forEach((button) => {
+    button.addEventListener("click", () => safelyRun("Play Music", () => {
+        playArcadeTrack(button.dataset.musicTrack);
+    }));
+});
 if (ui.premiumTicketBuyButton) {
     ui.premiumTicketBuyButton.addEventListener("click", () => safelyRun("Buy Premium Ticket", () => purchaseItem("premium-ticket")));
 }

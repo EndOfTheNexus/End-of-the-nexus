@@ -43,6 +43,11 @@
                 <div class="home-panel-top">
                     <button id="home-continue-button" class="tiny-action" type="button">Continue</button>
                     <div class="home-panel-top-actions">
+                        <button id="home-menu-button" class="tiny-action menu-toggle-button" type="button" aria-label="Open games and music menu">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </button>
                         <button id="home-install-button" class="tiny-action" type="button">Install App</button>
                         <button id="home-chat-button" class="tiny-action" type="button">Chat</button>
                     </div>
@@ -242,6 +247,63 @@
                     <div class="chat-compose">
                         <input id="home-chat-input" class="chat-input" type="text" maxlength="160" placeholder="Type a message">
                         <button id="home-chat-send-button" class="primary-action" type="button">Send</button>
+                    </div>
+                </div>
+
+                <div id="home-arcade-panel" class="home-subpanel hidden">
+                    <div class="card-heading">
+                        <span>Games + Music</span>
+                        <button class="tiny-action" data-home-back type="button">Back</button>
+                    </div>
+                    <div class="arcade-launcher-grid">
+                        <button id="menu-end-of-the-nexus-button" class="arcade-launch-card" type="button">
+                            <strong>End of the Nexus</strong>
+                            <span>Jump back into the main action RPG.</span>
+                        </button>
+                        <button id="menu-chess-button" class="arcade-launch-card" type="button">
+                            <strong>Chess</strong>
+                            <span>Play local two-player chess on an 8x8 board.</span>
+                        </button>
+                        <button id="menu-checkers-button" class="arcade-launch-card" type="button">
+                            <strong>Checkers</strong>
+                            <span>Play local checkers with captures and kings.</span>
+                        </button>
+                        <button id="menu-music-button" class="arcade-launch-card" type="button">
+                            <strong>Music</strong>
+                            <span>Listen to built-in synth tracks while you hang out.</span>
+                        </button>
+                    </div>
+                    <div id="arcade-status-text" class="field-label">Open something from the menu above.</div>
+
+                    <div id="arcade-chess-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Chess</span>
+                            <button id="arcade-chess-reset-button" class="tiny-action" type="button">Reset</button>
+                        </div>
+                        <p id="arcade-chess-turn" class="hero-copy">White to move.</p>
+                        <div id="arcade-chess-board" class="board-grid chess-board" aria-label="Chess board"></div>
+                    </div>
+
+                    <div id="arcade-checkers-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Checkers</span>
+                            <button id="arcade-checkers-reset-button" class="tiny-action" type="button">Reset</button>
+                        </div>
+                        <p id="arcade-checkers-turn" class="hero-copy">Red to move.</p>
+                        <div id="arcade-checkers-board" class="board-grid checkers-board" aria-label="Checkers board"></div>
+                    </div>
+
+                    <div id="arcade-music-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Music</span>
+                            <button id="arcade-music-stop-button" class="tiny-action" type="button">Stop</button>
+                        </div>
+                        <p id="arcade-music-now-playing" class="hero-copy">Nothing playing yet.</p>
+                        <div class="arcade-music-grid">
+                            <button class="primary-action" data-music-track="dungeon" type="button">Dungeon Pulse</button>
+                            <button class="ghost-action" data-music-track="skyline" type="button">Skyline Drift</button>
+                            <button class="ghost-action" data-music-track="ember" type="button">Ember Rush</button>
+                        </div>
                     </div>
                 </div>
 
@@ -517,6 +579,6 @@
         </footer>
     </main>
 
-    <script src="script.js?v=60"></script>
+    <script src="script.js?v=66"></script>
 </body>
 </html>
