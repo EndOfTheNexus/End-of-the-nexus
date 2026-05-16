@@ -59,6 +59,9 @@ const ui = {
     menuCheckersButton: document.getElementById("menu-checkers-button"),
     menuTicTacToeButton: document.getElementById("menu-tictactoe-button"),
     menuMemoryButton: document.getElementById("menu-memory-button"),
+    menuReactionButton: document.getElementById("menu-reaction-button"),
+    menuCodebreakerButton: document.getElementById("menu-codebreaker-button"),
+    menuDodgeButton: document.getElementById("menu-dodge-button"),
     menuMusicButton: document.getElementById("menu-music-button"),
     arcadeStatusText: document.getElementById("arcade-status-text"),
     arcadeChessPanel: document.getElementById("arcade-chess-panel"),
@@ -77,6 +80,26 @@ const ui = {
     arcadeMemoryStatus: document.getElementById("arcade-memory-status"),
     arcadeMemoryBoard: document.getElementById("arcade-memory-board"),
     arcadeMemoryResetButton: document.getElementById("arcade-memory-reset-button"),
+    arcadeReactionPanel: document.getElementById("arcade-reaction-panel"),
+    arcadeReactionStatus: document.getElementById("arcade-reaction-status"),
+    arcadeReactionStartButton: document.getElementById("arcade-reaction-start-button"),
+    arcadeReactionPlayerOneButton: document.getElementById("arcade-reaction-player-one-button"),
+    arcadeReactionPlayerTwoButton: document.getElementById("arcade-reaction-player-two-button"),
+    arcadeReactionScore: document.getElementById("arcade-reaction-score"),
+    arcadeReactionBest: document.getElementById("arcade-reaction-best"),
+    arcadeReactionResetButton: document.getElementById("arcade-reaction-reset-button"),
+    arcadeCodebreakerPanel: document.getElementById("arcade-codebreaker-panel"),
+    arcadeCodebreakerStatus: document.getElementById("arcade-codebreaker-status"),
+    arcadeCodebreakerInput: document.getElementById("arcade-codebreaker-input"),
+    arcadeCodebreakerSubmitButton: document.getElementById("arcade-codebreaker-submit-button"),
+    arcadeCodebreakerLog: document.getElementById("arcade-codebreaker-log"),
+    arcadeCodebreakerResetButton: document.getElementById("arcade-codebreaker-reset-button"),
+    arcadeDodgePanel: document.getElementById("arcade-dodge-panel"),
+    arcadeDodgeStatus: document.getElementById("arcade-dodge-status"),
+    arcadeDodgeScore: document.getElementById("arcade-dodge-score"),
+    arcadeDodgeBest: document.getElementById("arcade-dodge-best"),
+    arcadeDodgeBoard: document.getElementById("arcade-dodge-board"),
+    arcadeDodgeResetButton: document.getElementById("arcade-dodge-reset-button"),
     arcadeMusicPanel: document.getElementById("arcade-music-panel"),
     arcadeMusicNowPlaying: document.getElementById("arcade-music-now-playing"),
     arcadeMusicStopButton: document.getElementById("arcade-music-stop-button"),
@@ -223,6 +246,9 @@ const arcadeHub = {
     checkers: createInitialCheckersState(),
     ticTacToe: createInitialTicTacToeState(),
     memory: createInitialMemoryState(),
+    reaction: createInitialReactionState(),
+    codebreaker: createInitialCodebreakerState(),
+    dodge: createInitialDodgeState(),
     music: {
         context: null,
         gain: null,
@@ -1060,6 +1086,48 @@ function createInitialMemoryState() {
     };
 }
 
+function createInitialReactionState() {
+    return {
+        phase: "idle",
+        scores: { player1: 0, player2: 0 },
+        bestMs: null,
+        startAt: 0,
+        timer: null
+    };
+}
+
+function generateCodebreakerSecret() {
+    const digits = [];
+    while (digits.length < 4) {
+        const next = String(Math.floor(Math.random() * 10));
+        if (!digits.includes(next)) {
+            digits.push(next);
+        }
+    }
+    return digits.join("");
+}
+
+function createInitialCodebreakerState() {
+    return {
+        secret: generateCodebreakerSecret(),
+        guesses: [],
+        solved: false
+    };
+}
+
+function createInitialDodgeState() {
+    return {
+        size: 5,
+        player: { row: 2, col: 2 },
+        hunter: { row: 0, col: 0 },
+        core: { row: 4, col: 4 },
+        score: 0,
+        best: 0,
+        gameOver: false,
+        timer: null
+    };
+}
+
 function setArcadeStatus(message) {
     if (ui.arcadeStatusText) {
         ui.arcadeStatusText.textContent = message;
@@ -1083,6 +1151,15 @@ function renderArcadePanel() {
     if (ui.arcadeMemoryPanel) {
         ui.arcadeMemoryPanel.classList.toggle("hidden", active !== "memory");
     }
+    if (ui.arcadeReactionPanel) {
+        ui.arcadeReactionPanel.classList.toggle("hidden", active !== "reaction");
+    }
+    if (ui.arcadeCodebreakerPanel) {
+        ui.arcadeCodebreakerPanel.classList.toggle("hidden", active !== "codebreaker");
+    }
+    if (ui.arcadeDodgePanel) {
+        ui.arcadeDodgePanel.classList.toggle("hidden", active !== "dodge");
+    }
     if (ui.arcadeMusicPanel) {
         ui.arcadeMusicPanel.classList.toggle("hidden", active !== "music");
     }
@@ -1100,6 +1177,16 @@ function renderArcadePanel() {
     } else if (active === "memory") {
         setArcadeStatus("Memory Match is open. Find every pair.");
         renderMemoryBoard();
+    } else if (active === "reaction") {
+        setArcadeStatus("Reaction Duel is open. Wait for GO, then fire fast.");
+        renderReactionDuel();
+    } else if (active === "codebreaker") {
+        setArcadeStatus("Codebreaker is open. Crack the 4-digit vault.");
+        renderCodebreaker();
+    } else if (active === "dodge") {
+        setArcadeStatus("Dodge Arena is open. Stay alive and collect cores.");
+        startDodgeArena();
+        renderDodgeArena();
     } else if (active === "music") {
         setArcadeStatus("Music player is open. Pick a track.");
         updateMusicNowPlaying();
@@ -1107,8 +1194,45 @@ function renderArcadePanel() {
 }
 
 function openArcadeSection(section) {
+    if (arcadeHub.active === "dodge" && section !== "dodge") {
+        stopDodgeArena();
+    }
     arcadeHub.active = section;
     showHomePanel("arcade");
+}
+
+function handleArcadeHotkey(event) {
+    if (arcadeHub.active === "reaction" && event.type === "keydown") {
+        if (event.code === "KeyQ") {
+            event.preventDefault();
+            finishReactionRound("player1");
+            return true;
+        }
+        if (event.code === "KeyP") {
+            event.preventDefault();
+            finishReactionRound("player2");
+            return true;
+        }
+    }
+    if (arcadeHub.active === "dodge" && event.type === "keydown") {
+        const moves = {
+            ArrowUp: { row: -1, col: 0 },
+            KeyW: { row: -1, col: 0 },
+            ArrowDown: { row: 1, col: 0 },
+            KeyS: { row: 1, col: 0 },
+            ArrowLeft: { row: 0, col: -1 },
+            KeyA: { row: 0, col: -1 },
+            ArrowRight: { row: 0, col: 1 },
+            KeyD: { row: 0, col: 1 }
+        };
+        const move = moves[event.code];
+        if (move) {
+            event.preventDefault();
+            moveDodgePlayer(move);
+            return true;
+        }
+    }
+    return false;
 }
 
 function getChessPieceGlyph(piece) {
@@ -1498,6 +1622,234 @@ function handleMemoryClick(index) {
             renderMemoryBoard();
         }, 700);
     }
+}
+
+function clearReactionTimer() {
+    const reaction = arcadeHub.reaction;
+    if (reaction.timer) {
+        window.clearTimeout(reaction.timer);
+        reaction.timer = null;
+    }
+}
+
+function renderReactionDuel() {
+    if (!ui.arcadeReactionStatus || !ui.arcadeReactionScore || !ui.arcadeReactionBest) {
+        return;
+    }
+    const reaction = arcadeHub.reaction;
+    const phaseCopy = {
+        idle: "Press Start Round, wait for GO, then hit Q or P.",
+        arming: "Hold up... hit too early and you lose the round.",
+        go: "GO! First hit wins.",
+        winner: "Round over. Start another duel."
+    };
+    ui.arcadeReactionStatus.textContent = phaseCopy[reaction.phase] || phaseCopy.idle;
+    ui.arcadeReactionScore.textContent = `Score ${reaction.scores.player1} - ${reaction.scores.player2}`;
+    ui.arcadeReactionBest.textContent = reaction.bestMs === null ? "Best reaction: --" : `Best reaction: ${reaction.bestMs} ms`;
+}
+
+function startReactionRound() {
+    const reaction = arcadeHub.reaction;
+    clearReactionTimer();
+    reaction.phase = "arming";
+    reaction.startAt = 0;
+    renderReactionDuel();
+    reaction.timer = window.setTimeout(() => {
+        reaction.phase = "go";
+        reaction.startAt = performance.now();
+        reaction.timer = null;
+        renderReactionDuel();
+    }, 1200 + Math.floor(Math.random() * 2200));
+}
+
+function finishReactionRound(playerKey) {
+    const reaction = arcadeHub.reaction;
+    if (reaction.phase === "arming") {
+        clearReactionTimer();
+        reaction.phase = "winner";
+        if (playerKey === "player1") {
+            reaction.scores.player2 += 1;
+            ui.arcadeReactionStatus.textContent = "Player 1 jumped early. Player 2 gets the point.";
+        } else {
+            reaction.scores.player1 += 1;
+            ui.arcadeReactionStatus.textContent = "Player 2 jumped early. Player 1 gets the point.";
+        }
+        ui.arcadeReactionScore.textContent = `Score ${reaction.scores.player1} - ${reaction.scores.player2}`;
+        return;
+    }
+    if (reaction.phase !== "go") {
+        return;
+    }
+    const elapsed = Math.max(1, Math.round(performance.now() - reaction.startAt));
+    reaction.bestMs = reaction.bestMs === null ? elapsed : Math.min(reaction.bestMs, elapsed);
+    reaction.scores[playerKey] += 1;
+    reaction.phase = "winner";
+    ui.arcadeReactionStatus.textContent = `${playerKey === "player1" ? "Player 1" : "Player 2"} wins in ${elapsed} ms.`;
+    ui.arcadeReactionScore.textContent = `Score ${reaction.scores.player1} - ${reaction.scores.player2}`;
+    ui.arcadeReactionBest.textContent = `Best reaction: ${reaction.bestMs} ms`;
+}
+
+function scoreCodebreakerGuess(secret, guess) {
+    let hits = 0;
+    let almost = 0;
+    guess.split("").forEach((digit, index) => {
+        if (secret[index] === digit) {
+            hits += 1;
+        } else if (secret.includes(digit)) {
+            almost += 1;
+        }
+    });
+    return { hits, almost };
+}
+
+function renderCodebreaker() {
+    if (!ui.arcadeCodebreakerStatus || !ui.arcadeCodebreakerLog) {
+        return;
+    }
+    const codebreaker = arcadeHub.codebreaker;
+    ui.arcadeCodebreakerStatus.textContent = codebreaker.solved
+        ? `Vault cracked in ${codebreaker.guesses.length} guesses. Reset for a new code.`
+        : `Guess the 4-digit code. Hits are exact. Near-miss means right digit, wrong spot.`;
+    ui.arcadeCodebreakerLog.innerHTML = codebreaker.guesses.length
+        ? codebreaker.guesses.map((entry) => `
+            <div class="arcade-log-entry">
+                <strong>${entry.guess}</strong> -> Hits ${entry.hits} | Near-miss ${entry.almost}
+            </div>
+        `).join("")
+        : `<div class="arcade-log-entry">No guesses yet. Try a 4-digit code with no repeats.</div>`;
+}
+
+function submitCodebreakerGuess() {
+    const codebreaker = arcadeHub.codebreaker;
+    const rawGuess = ui.arcadeCodebreakerInput?.value.trim() || "";
+    if (codebreaker.solved) {
+        return;
+    }
+    if (!/^\d{4}$/.test(rawGuess)) {
+        if (ui.arcadeCodebreakerStatus) {
+            ui.arcadeCodebreakerStatus.textContent = "Use exactly 4 numbers.";
+        }
+        return;
+    }
+    if (new Set(rawGuess).size !== 4) {
+        if (ui.arcadeCodebreakerStatus) {
+            ui.arcadeCodebreakerStatus.textContent = "Use 4 different digits for each guess.";
+        }
+        return;
+    }
+    const score = scoreCodebreakerGuess(codebreaker.secret, rawGuess);
+    codebreaker.guesses.unshift({ guess: rawGuess, ...score });
+    codebreaker.solved = score.hits === 4;
+    if (ui.arcadeCodebreakerInput) {
+        ui.arcadeCodebreakerInput.value = "";
+    }
+    renderCodebreaker();
+}
+
+function stopDodgeArena() {
+    const dodge = arcadeHub.dodge;
+    if (dodge.timer) {
+        window.clearInterval(dodge.timer);
+        dodge.timer = null;
+    }
+}
+
+function randomOpenDodgeCell(exclusions) {
+    const dodge = arcadeHub.dodge;
+    const blocked = new Set(exclusions.map(({ row, col }) => `${row}:${col}`));
+    const choices = [];
+    for (let row = 0; row < dodge.size; row += 1) {
+        for (let col = 0; col < dodge.size; col += 1) {
+            const key = `${row}:${col}`;
+            if (!blocked.has(key)) {
+                choices.push({ row, col });
+            }
+        }
+    }
+    return choices[Math.floor(Math.random() * choices.length)] || { row: 0, col: 0 };
+}
+
+function spawnDodgeCore() {
+    arcadeHub.dodge.core = randomOpenDodgeCell([arcadeHub.dodge.player, arcadeHub.dodge.hunter]);
+}
+
+function renderDodgeArena() {
+    if (!ui.arcadeDodgeBoard || !ui.arcadeDodgeStatus || !ui.arcadeDodgeScore || !ui.arcadeDodgeBest) {
+        return;
+    }
+    const dodge = arcadeHub.dodge;
+    ui.arcadeDodgeStatus.textContent = dodge.gameOver
+        ? "Hunter tagged you. Hit reset to run it back."
+        : "Use arrows or WASD. Grab the core. Stay away from the hunter.";
+    ui.arcadeDodgeScore.textContent = `Score ${dodge.score}`;
+    ui.arcadeDodgeBest.textContent = `Best ${dodge.best}`;
+    const cells = [];
+    for (let row = 0; row < dodge.size; row += 1) {
+        for (let col = 0; col < dodge.size; col += 1) {
+            let glyph = "";
+            let extraClass = "";
+            if (dodge.player.row === row && dodge.player.col === col) {
+                glyph = "🧍";
+                extraClass = " player";
+            } else if (dodge.hunter.row === row && dodge.hunter.col === col) {
+                glyph = "👾";
+                extraClass = " hunter";
+            } else if (dodge.core.row === row && dodge.core.col === col) {
+                glyph = "⚡";
+                extraClass = " core";
+            }
+            cells.push(`<div class="board-cell dodge-cell${extraClass}">${glyph}</div>`);
+        }
+    }
+    ui.arcadeDodgeBoard.innerHTML = cells.join("");
+}
+
+function moveDodgeHunter() {
+    const dodge = arcadeHub.dodge;
+    if (dodge.gameOver) {
+        return;
+    }
+    const rowDelta = dodge.player.row - dodge.hunter.row;
+    const colDelta = dodge.player.col - dodge.hunter.col;
+    if (Math.abs(rowDelta) >= Math.abs(colDelta) && rowDelta !== 0) {
+        dodge.hunter.row += rowDelta > 0 ? 1 : -1;
+    } else if (colDelta !== 0) {
+        dodge.hunter.col += colDelta > 0 ? 1 : -1;
+    }
+    if (dodge.hunter.row === dodge.player.row && dodge.hunter.col === dodge.player.col) {
+        dodge.gameOver = true;
+        dodge.best = Math.max(dodge.best, dodge.score);
+        stopDodgeArena();
+    }
+    renderDodgeArena();
+}
+
+function startDodgeArena() {
+    const dodge = arcadeHub.dodge;
+    if (dodge.timer || dodge.gameOver || arcadeHub.active !== "dodge") {
+        return;
+    }
+    dodge.timer = window.setInterval(moveDodgeHunter, 700);
+}
+
+function moveDodgePlayer(direction) {
+    const dodge = arcadeHub.dodge;
+    if (arcadeHub.active !== "dodge" || dodge.gameOver) {
+        return;
+    }
+    const nextRow = Math.max(0, Math.min(dodge.size - 1, dodge.player.row + direction.row));
+    const nextCol = Math.max(0, Math.min(dodge.size - 1, dodge.player.col + direction.col));
+    dodge.player = { row: nextRow, col: nextCol };
+    if (dodge.player.row === dodge.core.row && dodge.player.col === dodge.core.col) {
+        dodge.score += 1;
+        dodge.best = Math.max(dodge.best, dodge.score);
+        spawnDodgeCore();
+    }
+    if (dodge.player.row === dodge.hunter.row && dodge.player.col === dodge.hunter.col) {
+        dodge.gameOver = true;
+        stopDodgeArena();
+    }
+    renderDodgeArena();
 }
 
 function stopArcadeMusic() {
@@ -10325,6 +10677,10 @@ function onKeyChange(event, pressed) {
         return;
     }
 
+    if (pressed && handleArcadeHotkey(event)) {
+        return;
+    }
+
     const { code } = event;
     if (code === "ArrowLeft" || code === "KeyA") {
         keys.left = pressed;
@@ -10541,7 +10897,10 @@ if (ui.homeChatButton) {
     ui.homeChatButton.addEventListener("click", () => safelyRun("Open Chat", () => showHomePanel("chat")));
 }
 if (ui.menuEndOfTheNexusButton) {
-    ui.menuEndOfTheNexusButton.addEventListener("click", () => safelyRun("Open End of the Nexus", () => showHomePanel("main")));
+    ui.menuEndOfTheNexusButton.addEventListener("click", () => safelyRun("Open End of the Nexus", () => {
+        stopDodgeArena();
+        showHomePanel("main");
+    }));
 }
 if (ui.menuChessButton) {
     ui.menuChessButton.addEventListener("click", () => safelyRun("Open Chess", () => openArcadeSection("chess")));
@@ -10554,6 +10913,15 @@ if (ui.menuTicTacToeButton) {
 }
 if (ui.menuMemoryButton) {
     ui.menuMemoryButton.addEventListener("click", () => safelyRun("Open Memory Match", () => openArcadeSection("memory")));
+}
+if (ui.menuReactionButton) {
+    ui.menuReactionButton.addEventListener("click", () => safelyRun("Open Reaction Duel", () => openArcadeSection("reaction")));
+}
+if (ui.menuCodebreakerButton) {
+    ui.menuCodebreakerButton.addEventListener("click", () => safelyRun("Open Codebreaker", () => openArcadeSection("codebreaker")));
+}
+if (ui.menuDodgeButton) {
+    ui.menuDodgeButton.addEventListener("click", () => safelyRun("Open Dodge Arena", () => openArcadeSection("dodge")));
 }
 if (ui.menuMusicButton) {
     ui.menuMusicButton.addEventListener("click", () => safelyRun("Open Music", () => openArcadeSection("music")));
@@ -10582,6 +10950,49 @@ if (ui.arcadeMemoryResetButton) {
         renderMemoryBoard();
     }));
 }
+if (ui.arcadeReactionStartButton) {
+    ui.arcadeReactionStartButton.addEventListener("click", () => safelyRun("Start Reaction Duel", startReactionRound));
+}
+if (ui.arcadeReactionPlayerOneButton) {
+    ui.arcadeReactionPlayerOneButton.addEventListener("click", () => safelyRun("Reaction Duel Player 1", () => finishReactionRound("player1")));
+}
+if (ui.arcadeReactionPlayerTwoButton) {
+    ui.arcadeReactionPlayerTwoButton.addEventListener("click", () => safelyRun("Reaction Duel Player 2", () => finishReactionRound("player2")));
+}
+if (ui.arcadeReactionResetButton) {
+    ui.arcadeReactionResetButton.addEventListener("click", () => safelyRun("Reset Reaction Duel", () => {
+        clearReactionTimer();
+        arcadeHub.reaction = createInitialReactionState();
+        renderReactionDuel();
+    }));
+}
+if (ui.arcadeCodebreakerSubmitButton) {
+    ui.arcadeCodebreakerSubmitButton.addEventListener("click", () => safelyRun("Guess Codebreaker", submitCodebreakerGuess));
+}
+if (ui.arcadeCodebreakerInput) {
+    ui.arcadeCodebreakerInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            safelyRun("Guess Codebreaker", submitCodebreakerGuess);
+        }
+    });
+}
+if (ui.arcadeCodebreakerResetButton) {
+    ui.arcadeCodebreakerResetButton.addEventListener("click", () => safelyRun("Reset Codebreaker", () => {
+        arcadeHub.codebreaker = createInitialCodebreakerState();
+        if (ui.arcadeCodebreakerInput) {
+            ui.arcadeCodebreakerInput.value = "";
+        }
+        renderCodebreaker();
+    }));
+}
+if (ui.arcadeDodgeResetButton) {
+    ui.arcadeDodgeResetButton.addEventListener("click", () => safelyRun("Reset Dodge Arena", () => {
+        stopDodgeArena();
+        arcadeHub.dodge = createInitialDodgeState();
+        startDodgeArena();
+        renderDodgeArena();
+    }));
+}
 if (ui.arcadeMusicStopButton) {
     ui.arcadeMusicStopButton.addEventListener("click", () => safelyRun("Stop Music", stopArcadeMusic));
 }
@@ -10597,7 +11008,10 @@ if (ui.multiplayerJoinButton) {
     ui.multiplayerJoinButton.addEventListener("click", () => safelyRun("Join Multiplayer", joinMultiplayerRoom));
 }
 document.querySelectorAll("[data-home-back]").forEach((button) => {
-    button.addEventListener("click", () => safelyRun("Back", () => showHomePanel("main")));
+    button.addEventListener("click", () => safelyRun("Back", () => {
+        stopDodgeArena();
+        showHomePanel("main");
+    }));
 });
 if (ui.playerNameInput) {
     ui.playerNameInput.addEventListener("input", savePlayerIdentity);

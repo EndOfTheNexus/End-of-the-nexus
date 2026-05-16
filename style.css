@@ -437,6 +437,24 @@ body.play-mode .control-dock {
         linear-gradient(160deg, rgba(29, 18, 43, 0.98), rgba(14, 11, 26, 0.98));
 }
 
+.arcade-launch-card-reaction {
+    background:
+        radial-gradient(circle at 15% 18%, rgba(255, 91, 217, 0.18), transparent 28%),
+        linear-gradient(160deg, rgba(38, 14, 32, 0.98), rgba(16, 8, 18, 0.98));
+}
+
+.arcade-launch-card-codebreaker {
+    background:
+        radial-gradient(circle at top right, rgba(99, 240, 160, 0.18), transparent 30%),
+        linear-gradient(160deg, rgba(15, 34, 30, 0.98), rgba(7, 16, 14, 0.98));
+}
+
+.arcade-launch-card-dodge {
+    background:
+        radial-gradient(circle at top left, rgba(133, 210, 255, 0.22), transparent 30%),
+        linear-gradient(160deg, rgba(15, 18, 36, 0.98), rgba(8, 10, 22, 0.98));
+}
+
 .arcade-launch-card-music {
     background:
         radial-gradient(circle at top left, rgba(133, 210, 255, 0.22), transparent 28%),
@@ -525,6 +543,74 @@ body.play-mode .control-dock {
 
 .memory-cell.matched {
     box-shadow: inset 0 0 0 3px rgba(99, 240, 160, 0.8);
+}
+
+.dodge-board {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: min(100%, 360px);
+}
+
+.dodge-cell {
+    aspect-ratio: 1;
+    background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 42%),
+        linear-gradient(160deg, rgba(12, 18, 34, 0.98), rgba(7, 10, 22, 0.98));
+    border: 1px solid rgba(133, 210, 255, 0.14);
+    color: #eef7ff;
+    font-size: clamp(1.15rem, 4vw, 1.65rem);
+}
+
+.dodge-cell.player {
+    box-shadow: inset 0 0 0 2px rgba(99, 240, 160, 0.9);
+}
+
+.dodge-cell.hunter {
+    box-shadow: inset 0 0 0 2px rgba(255, 99, 126, 0.92);
+}
+
+.dodge-cell.core {
+    box-shadow: inset 0 0 0 2px rgba(255, 211, 107, 0.92);
+}
+
+.arcade-mini-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.arcade-score-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+    color: var(--text-soft);
+}
+
+.arcade-score-strip span {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.arcade-guess-input {
+    width: 120px;
+    text-align: center;
+    letter-spacing: 0.35em;
+    font-weight: 700;
+}
+
+.arcade-log {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.arcade-log-entry {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-soft);
 }
 
 .piece-red {

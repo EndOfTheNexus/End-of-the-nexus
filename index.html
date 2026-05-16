@@ -276,6 +276,18 @@
                             <strong>Memory Match</strong>
                             <span>Flip cards and match icons in a dreamy grid.</span>
                         </button>
+                        <button id="menu-reaction-button" class="arcade-launch-card arcade-launch-card-reaction" type="button">
+                            <strong>Reaction Duel</strong>
+                            <span>Wait for the signal, then slam your key first to win the round.</span>
+                        </button>
+                        <button id="menu-codebreaker-button" class="arcade-launch-card arcade-launch-card-codebreaker" type="button">
+                            <strong>Codebreaker</strong>
+                            <span>Crack the hidden 4-digit vault code with hits and near-misses.</span>
+                        </button>
+                        <button id="menu-dodge-button" class="arcade-launch-card arcade-launch-card-dodge" type="button">
+                            <strong>Dodge Arena</strong>
+                            <span>Move around a live grid, grab cores, and dodge the hunter.</span>
+                        </button>
                         <button id="menu-music-button" class="arcade-launch-card arcade-launch-card-music" type="button">
                             <strong>Music</strong>
                             <span>Listen to built-in original synth tracks while you hang out.</span>
@@ -317,6 +329,49 @@
                         </div>
                         <p id="arcade-memory-status" class="hero-copy">Find all matching pairs.</p>
                         <div id="arcade-memory-board" class="board-grid memory-board" aria-label="Memory board"></div>
+                    </div>
+
+                    <div id="arcade-reaction-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Reaction Duel</span>
+                            <button id="arcade-reaction-reset-button" class="tiny-action" type="button">Reset</button>
+                        </div>
+                        <p id="arcade-reaction-status" class="hero-copy">Press Start Round, wait for GO, then hit Q or P.</p>
+                        <div class="arcade-mini-toolbar">
+                            <button id="arcade-reaction-start-button" class="primary-action" type="button">Start Round</button>
+                            <button id="arcade-reaction-player-one-button" class="ghost-action" type="button">Player 1: Q</button>
+                            <button id="arcade-reaction-player-two-button" class="ghost-action" type="button">Player 2: P</button>
+                        </div>
+                        <div class="arcade-score-strip">
+                            <span id="arcade-reaction-score">Score 0 - 0</span>
+                            <span id="arcade-reaction-best">Best reaction: --</span>
+                        </div>
+                    </div>
+
+                    <div id="arcade-codebreaker-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Codebreaker</span>
+                            <button id="arcade-codebreaker-reset-button" class="tiny-action" type="button">Reset</button>
+                        </div>
+                        <p id="arcade-codebreaker-status" class="hero-copy">Guess the 4-digit code. Hits are right digit, right spot.</p>
+                        <div class="arcade-mini-toolbar">
+                            <input id="arcade-codebreaker-input" class="chat-input arcade-guess-input" type="text" inputmode="numeric" maxlength="4" placeholder="1234">
+                            <button id="arcade-codebreaker-submit-button" class="primary-action" type="button">Guess</button>
+                        </div>
+                        <div id="arcade-codebreaker-log" class="arcade-log" aria-live="polite"></div>
+                    </div>
+
+                    <div id="arcade-dodge-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Dodge Arena</span>
+                            <button id="arcade-dodge-reset-button" class="tiny-action" type="button">Reset</button>
+                        </div>
+                        <p id="arcade-dodge-status" class="hero-copy">Use arrows or WASD. Grab the core. Stay away from the hunter.</p>
+                        <div class="arcade-score-strip">
+                            <span id="arcade-dodge-score">Score 0</span>
+                            <span id="arcade-dodge-best">Best 0</span>
+                        </div>
+                        <div id="arcade-dodge-board" class="board-grid dodge-board" aria-label="Dodge arena board"></div>
                     </div>
 
                     <div id="arcade-music-panel" class="arcade-tool hidden">
