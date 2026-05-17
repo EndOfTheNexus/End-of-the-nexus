@@ -110,6 +110,7 @@ const ui = {
     arcadeFormulaScore: document.getElementById("arcade-formula-score"),
     arcadeFormulaBest: document.getElementById("arcade-formula-best"),
     arcadeFormulaSpeed: document.getElementById("arcade-formula-speed"),
+    arcadeFormulaLaps: document.getElementById("arcade-formula-laps"),
     arcadeFormulaStartButton: document.getElementById("arcade-formula-start-button"),
     arcadeFormulaBoard: document.getElementById("arcade-formula-board"),
     arcadeFormulaResetButton: document.getElementById("arcade-formula-reset-button"),
@@ -1186,6 +1187,7 @@ function createInitialFormulaState() {
         score: 0,
         best: 0,
         speed: 1,
+        laps: 0,
         running: false,
         crashed: false,
         trackRows: Array.from({ length: 7 }, () => Array(5).fill("")),
@@ -2017,19 +2019,48 @@ function stopFormulaRace() {
     formula.running = false;
 }
 
+function flashFormulaCrash() {
+    if (!ui.arcadeFormulaPanel) {
+        return;
+    }
+    ui.arcadeFormulaPanel.classList.remove("formula-panel-crash");
+    void ui.arcadeFormulaPanel.offsetWidth;
+    ui.arcadeFormulaPanel.classList.add("formula-panel-crash");
+}
+
+function syncFormulaTimer() {
+    const formula = arcadeHub.formula;
+    if (!formula.running || formula.crashed) {
+        return;
+    }
+    if (formula.timer) {
+        window.clearInterval(formula.timer);
+    }
+    formula.timer = window.setInterval(() => {
+        tickFormulaRace();
+    }, Math.max(150, 420 - Math.round(formula.speed * 65)));
+}
+
 function renderFormulaRace() {
-    if (!ui.arcadeFormulaBoard || !ui.arcadeFormulaStatus || !ui.arcadeFormulaScore || !ui.arcadeFormulaBest || !ui.arcadeFormulaSpeed) {
+    if (!ui.arcadeFormulaBoard || !ui.arcadeFormulaStatus || !ui.arcadeFormulaScore || !ui.arcadeFormulaBest || !ui.arcadeFormulaSpeed || !ui.arcadeFormulaLaps) {
         return;
     }
     const formula = arcadeHub.formula;
+    if (ui.arcadeFormulaPanel) {
+        ui.arcadeFormulaPanel.classList.toggle("formula-panel-live", formula.running && !formula.crashed);
+        if (!formula.crashed) {
+            ui.arcadeFormulaPanel.classList.remove("formula-panel-crash");
+        }
+    }
     ui.arcadeFormulaStatus.textContent = formula.crashed
         ? "Crash. Reset or start again to hit the circuit."
         : formula.running
-            ? "Thread the traffic, hit boost pads, and stay off the walls."
+            ? `Lap ${formula.laps + 1}. Thread the traffic, hit boost pads, and stay off the walls.`
             : "Use arrows or A and D to change lanes. Press Start Race when ready.";
     ui.arcadeFormulaScore.textContent = `Score ${formula.score}`;
     ui.arcadeFormulaBest.textContent = `Best ${formula.best}`;
     ui.arcadeFormulaSpeed.textContent = `Speed ${formula.speed.toFixed(1)}x`;
+    ui.arcadeFormulaLaps.textContent = `Laps ${formula.laps}`;
 
     const cells = [];
     formula.trackRows.forEach((row, rowIndex) => {
@@ -2087,12 +2118,14 @@ function tickFormulaRace() {
         formula.crashed = true;
         formula.best = Math.max(formula.best, formula.score);
         stopFormulaRace();
+        flashFormulaCrash();
         renderFormulaRace();
         return;
     }
     if (nextBottom === "boost") {
         formula.speed = Math.min(3.5, formula.speed + 0.2);
         formula.score += 8;
+        syncFormulaTimer();
     }
     formula.trackRows.pop();
     formula.trackRows.unshift(createFormulaTrackRow(formula.lanes));
@@ -2100,6 +2133,10 @@ function tickFormulaRace() {
     formula.best = Math.max(formula.best, formula.score);
     if (formula.score > 0 && formula.score % 40 === 0) {
         formula.speed = Math.min(3.5, formula.speed + 0.1);
+        syncFormulaTimer();
+    }
+    if (formula.score > 0 && formula.score % 60 === 0) {
+        formula.laps += 1;
     }
     renderFormulaRace();
 }
@@ -2116,9 +2153,7 @@ function startFormulaRace() {
     activeFormula.running = true;
     activeFormula.crashed = false;
     renderFormulaRace();
-    activeFormula.timer = window.setInterval(() => {
-        tickFormulaRace();
-    }, Math.max(170, 420 - Math.round(activeFormula.speed * 55)));
+    syncFormulaTimer();
 }
 
 function moveFormulaCar(direction) {
@@ -2133,10 +2168,12 @@ function moveFormulaCar(direction) {
         formula.crashed = true;
         formula.best = Math.max(formula.best, formula.score);
         stopFormulaRace();
+        flashFormulaCrash();
     } else if (tile === "boost") {
         formula.speed = Math.min(3.5, formula.speed + 0.15);
         formula.score += 5;
         formula.trackRows[formula.rows - 1][formula.playerLane] = "";
+        syncFormulaTimer();
     }
     renderFormulaRace();
 }
