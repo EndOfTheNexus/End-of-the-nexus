@@ -1247,6 +1247,29 @@ function createMatureVaultEntries() {
             });
         }
     }
+    const bonusEntries = [
+        { title: "Aftershock Circuit", genre: "Street Racing", tone: "Hard sci-fi", pitch: "High-speed circuit duels with meaner rivals and tighter corners.", cover: "redline" },
+        { title: "Terminal Breach", genre: "Tactical Shooter", tone: "Black-ops suspense", pitch: "Break into a locked station and survive the counterattack.", cover: "steel" },
+        { title: "Ghost Sector", genre: "Sci-Fi Horror", tone: "Dystopian noir", pitch: "Push through a dark sector where every hallway feels wrong.", cover: "void" },
+        { title: "Night Market Run", genre: "Stealth Action", tone: "Grounded urban", pitch: "Slip through a packed district while rival crews close in.", cover: "neon" },
+        { title: "Steel Horizon", genre: "Survival Thriller", tone: "Gritty survival", pitch: "Hold the line as supplies drop and the arena gets meaner.", cover: "steel" },
+        { title: "Black Sun Raid", genre: "Tactical Shooter", tone: "Hard sci-fi", pitch: "A hotter, louder raid built around pressure and fast decisions.", cover: "gold" },
+        { title: "Pulse Highway", genre: "Street Racing", tone: "Grounded urban", pitch: "Sprint through a glowing freeway while rivals crowd every lane.", cover: "cyan" },
+        { title: "Rogue Archive", genre: "Stealth Action", tone: "Black-ops suspense", pitch: "Sneak deeper into a sealed archive before the hunters triangulate you.", cover: "void" },
+        { title: "Dead Signal", genre: "Sci-Fi Horror", tone: "Dystopian noir", pitch: "Follow a corrupted distress call into a zone nobody comes back from.", cover: "redline" },
+        { title: "Cinder Lock", genre: "Survival Thriller", tone: "Gritty survival", pitch: "Outlast a collapsing stronghold with almost no room for mistakes.", cover: "gold" },
+        { title: "Vanta Rush", genre: "Street Racing", tone: "Hard sci-fi", pitch: "A brutal midnight race with boost gates, rivals, and zero mercy.", cover: "neon" }
+    ];
+    bonusEntries.forEach((entry, index) => {
+        entries.push({
+            id: `vault-bonus-${index}`,
+            title: entry.title,
+            genre: entry.genre,
+            tone: entry.tone,
+            pitch: entry.pitch,
+            cover: entry.cover
+        });
+    });
     return entries;
 }
 
