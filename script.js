@@ -124,6 +124,14 @@ const ui = {
     arcadeVaultPreviewGenre: document.getElementById("arcade-vault-preview-genre"),
     arcadeVaultPreviewCopy: document.getElementById("arcade-vault-preview-copy"),
     arcadeVaultLaunchButton: document.getElementById("arcade-vault-launch-button"),
+    arcadeVaultGamePanel: document.getElementById("arcade-vaultgame-panel"),
+    arcadeVaultGameTitle: document.getElementById("arcade-vaultgame-title"),
+    arcadeVaultGameStatus: document.getElementById("arcade-vaultgame-status"),
+    arcadeVaultGameScore: document.getElementById("arcade-vaultgame-score"),
+    arcadeVaultGameGenre: document.getElementById("arcade-vaultgame-genre"),
+    arcadeVaultGameTone: document.getElementById("arcade-vaultgame-tone"),
+    arcadeVaultGameBoard: document.getElementById("arcade-vaultgame-board"),
+    arcadeVaultGameResetButton: document.getElementById("arcade-vaultgame-reset-button"),
     arcadeMusicPanel: document.getElementById("arcade-music-panel"),
     arcadeMusicNowPlaying: document.getElementById("arcade-music-now-playing"),
     arcadeMusicStopButton: document.getElementById("arcade-music-stop-button"),
@@ -278,6 +286,7 @@ const arcadeHub = {
         entries: createMatureVaultEntries(),
         selectedId: ""
     },
+    vaultGame: null,
     music: {
         context: null,
         gain: null,
@@ -1214,7 +1223,6 @@ function createMatureVaultEntries() {
     const hooks = ["Run", "Protocol", "District", "Break", "Strike", "Drift", "Line", "Signal", "Fall", "Reckoning"];
     const genres = ["Tactical Shooter", "Street Racing", "Sci-Fi Horror", "Stealth Action", "Survival Thriller"];
     const tones = ["Hard sci-fi", "Grounded urban", "Gritty survival", "Black-ops suspense", "Dystopian noir"];
-    const launchTargets = ["formula", "reaction", "codebreaker", "dodge", "tictactoe", "memory", "checkers", "chess"];
     const pitches = [
         "Push through high-pressure missions, smarter enemies, and heavier stakes.",
         "Race, fight, or survive your way through a city that never really sleeps.",
@@ -1234,12 +1242,59 @@ function createMatureVaultEntries() {
                 genre: genres[mix % genres.length],
                 tone: tones[(worldIndex * 2 + hookIndex) % tones.length],
                 pitch: pitches[(worldIndex + hookIndex * 2) % pitches.length],
-                cover: covers[(worldIndex * 3 + hookIndex) % covers.length],
-                launchTarget: launchTargets[(worldIndex * 5 + hookIndex) % launchTargets.length]
+                cover: covers[(worldIndex * 3 + hookIndex) % covers.length]
             });
         }
     }
     return entries;
+}
+
+function hashVaultString(text) {
+    let hash = 0;
+    for (let index = 0; index < text.length; index += 1) {
+        hash = (hash * 31 + text.charCodeAt(index)) % 2147483647;
+    }
+    return hash;
+}
+
+function createVaultMission(entry) {
+    const size = 5;
+    const seed = hashVaultString(entry.id);
+    const used = new Set(["4:2"]);
+    const reserveSpot = () => {
+        let cursor = used.size;
+        while (cursor < 40) {
+            const value = (seed + cursor * 17 + cursor * cursor) % (size * size);
+            const row = Math.floor(value / size);
+            const col = value % size;
+            const key = `${row}:${col}`;
+            cursor += 1;
+            if (!used.has(key)) {
+                used.add(key);
+                return { row, col };
+            }
+        }
+        return { row: 0, col: 0 };
+    };
+    const exit = reserveSpot();
+    const shards = [reserveSpot(), reserveSpot(), reserveSpot()];
+    const sentries = [reserveSpot(), reserveSpot()];
+    return {
+        entryId: entry.id,
+        title: entry.title,
+        genre: entry.genre,
+        tone: entry.tone,
+        cover: entry.cover,
+        size,
+        player: { row: 4, col: 2 },
+        exit,
+        shards,
+        sentries,
+        collected: 0,
+        won: false,
+        lost: false,
+        moves: 0
+    };
 }
 
 function setArcadeStatus(message) {
@@ -1280,6 +1335,9 @@ function renderArcadePanel() {
     if (ui.arcadeVaultPanel) {
         ui.arcadeVaultPanel.classList.toggle("hidden", active !== "vault");
     }
+    if (ui.arcadeVaultGamePanel) {
+        ui.arcadeVaultGamePanel.classList.toggle("hidden", active !== "vaultgame");
+    }
     if (ui.arcadeMusicPanel) {
         ui.arcadeMusicPanel.classList.toggle("hidden", active !== "music");
     }
@@ -1313,6 +1371,9 @@ function renderArcadePanel() {
     } else if (active === "vault") {
         setArcadeStatus("15+ Vault is open. Browse the older-audience lineup.");
         renderMatureVault();
+    } else if (active === "vaultgame") {
+        setArcadeStatus("Vault mission is open. Collect the shards and reach the exit.");
+        renderVaultMission();
     } else if (active === "music") {
         setArcadeStatus("Music player is open. Pick a track.");
         updateMusicNowPlaying();
@@ -1386,6 +1447,24 @@ function handleArcadeHotkey(event) {
         if (event.code === "Enter" || event.code === "Space") {
             event.preventDefault();
             startFormulaRace();
+            return true;
+        }
+    }
+    if (arcadeHub.active === "vaultgame" && event.type === "keydown") {
+        const moves = {
+            ArrowUp: { row: -1, col: 0 },
+            KeyW: { row: -1, col: 0 },
+            ArrowDown: { row: 1, col: 0 },
+            KeyS: { row: 1, col: 0 },
+            ArrowLeft: { row: 0, col: -1 },
+            KeyA: { row: 0, col: -1 },
+            ArrowRight: { row: 0, col: 1 },
+            KeyD: { row: 0, col: 1 }
+        };
+        const move = moves[event.code];
+        if (move) {
+            event.preventDefault();
+            moveVaultMissionPlayer(move.row, move.col);
             return true;
         }
     }
@@ -2285,8 +2364,98 @@ function launchVaultEntry(id = arcadeHub.vault.selectedId) {
         return;
     }
     arcadeHub.vault.selectedId = entry.id;
-    setArcadeStatus(`${entry.title} is opening in ${entry.launchTarget}.`);
-    openArcadeSection(entry.launchTarget);
+    arcadeHub.vaultGame = createVaultMission(entry);
+    setArcadeStatus(`${entry.title} is opening as its own vault mission.`);
+    openArcadeSection("vaultgame");
+}
+
+function positionsMatch(a, b) {
+    return a.row === b.row && a.col === b.col;
+}
+
+function renderVaultMission() {
+    const mission = arcadeHub.vaultGame;
+    if (!mission || !ui.arcadeVaultGameTitle || !ui.arcadeVaultGameStatus || !ui.arcadeVaultGameScore || !ui.arcadeVaultGameGenre || !ui.arcadeVaultGameTone || !ui.arcadeVaultGameBoard) {
+        return;
+    }
+    ui.arcadeVaultGameTitle.textContent = mission.title;
+    ui.arcadeVaultGameScore.textContent = `Shards ${mission.collected}/3`;
+    ui.arcadeVaultGameGenre.textContent = mission.genre;
+    ui.arcadeVaultGameTone.textContent = mission.tone;
+    if (mission.won) {
+        ui.arcadeVaultGameStatus.textContent = "Mission clear. You grabbed every shard and escaped.";
+    } else if (mission.lost) {
+        ui.arcadeVaultGameStatus.textContent = "Mission failed. A sentry caught you. Reset and try again.";
+    } else {
+        ui.arcadeVaultGameStatus.textContent = "Use arrows or WASD. Grab all shards, then reach the exit gate.";
+    }
+
+    const cells = [];
+    for (let row = 0; row < mission.size; row += 1) {
+        for (let col = 0; col < mission.size; col += 1) {
+            const classNames = ["board-cell", "vaultgame-cell"];
+            let glyph = "";
+            if (positionsMatch(mission.exit, { row, col })) {
+                classNames.push("exit");
+                glyph = "◎";
+            }
+            if (mission.shards.some((shard) => positionsMatch(shard, { row, col }))) {
+                classNames.push("shard");
+                glyph = "✦";
+            }
+            if (mission.sentries.some((sentry) => positionsMatch(sentry, { row, col }))) {
+                classNames.push("sentry");
+                glyph = "▲";
+            }
+            if (positionsMatch(mission.player, { row, col })) {
+                classNames.push("player");
+                glyph = "◆";
+            }
+            cells.push(`<div class="${classNames.join(" ")}">${glyph}</div>`);
+        }
+    }
+    ui.arcadeVaultGameBoard.innerHTML = cells.join("");
+}
+
+function moveVaultMissionPlayer(rowDelta, colDelta) {
+    const mission = arcadeHub.vaultGame;
+    if (!mission || arcadeHub.active !== "vaultgame" || mission.won || mission.lost) {
+        return;
+    }
+    mission.player.row = Math.max(0, Math.min(mission.size - 1, mission.player.row + rowDelta));
+    mission.player.col = Math.max(0, Math.min(mission.size - 1, mission.player.col + colDelta));
+    mission.moves += 1;
+    mission.shards = mission.shards.filter((shard) => !positionsMatch(shard, mission.player));
+    mission.collected = 3 - mission.shards.length;
+
+    mission.sentries = mission.sentries.map((sentry, index) => {
+        const next = { ...sentry };
+        const chaseRowFirst = (mission.moves + index) % 2 === 0;
+        if (chaseRowFirst && mission.player.row !== next.row) {
+            next.row += mission.player.row > next.row ? 1 : -1;
+        } else if (mission.player.col !== next.col) {
+            next.col += mission.player.col > next.col ? 1 : -1;
+        } else if (mission.player.row !== next.row) {
+            next.row += mission.player.row > next.row ? 1 : -1;
+        }
+        return next;
+    });
+
+    if (mission.sentries.some((sentry) => positionsMatch(sentry, mission.player))) {
+        mission.lost = true;
+    } else if (!mission.shards.length && positionsMatch(mission.exit, mission.player)) {
+        mission.won = true;
+    }
+    renderVaultMission();
+}
+
+function resetVaultMission() {
+    const entry = arcadeHub.vault.entries.find((item) => item.id === arcadeHub.vault.selectedId);
+    if (!entry) {
+        return;
+    }
+    arcadeHub.vaultGame = createVaultMission(entry);
+    renderVaultMission();
 }
 
 function renderMatureVault() {
@@ -2321,8 +2490,8 @@ function renderMatureVault() {
     if (selected) {
         ui.arcadeVaultPreview.className = `arcade-vault-preview arcade-vault-cover-${selected.cover}`;
         ui.arcadeVaultPreviewTitle.textContent = selected.title;
-        ui.arcadeVaultPreviewGenre.textContent = `${selected.genre} | ${selected.tone} | Opens ${selected.launchTarget}`;
-        ui.arcadeVaultPreviewCopy.textContent = `${selected.pitch} Tap Play This Game to launch its live mode.`;
+        ui.arcadeVaultPreviewGenre.textContent = `${selected.genre} | ${selected.tone} | Unique mission`;
+        ui.arcadeVaultPreviewCopy.textContent = `${selected.pitch} Tap Play This Game to launch its own vault mission.`;
     }
     if (ui.arcadeVaultLaunchButton) {
         ui.arcadeVaultLaunchButton.onclick = () => launchVaultEntry(selected?.id);
@@ -11416,6 +11585,9 @@ if (ui.menuFormulaButton) {
 }
 if (ui.menuVaultButton) {
     ui.menuVaultButton.addEventListener("click", () => safelyRun("Open 15 Plus Vault", () => openArcadeSection("vault")));
+}
+if (ui.arcadeVaultGameResetButton) {
+    ui.arcadeVaultGameResetButton.addEventListener("click", () => safelyRun("Reset Vault Mission", resetVaultMission));
 }
 if (ui.menuMusicButton) {
     ui.menuMusicButton.addEventListener("click", () => safelyRun("Open Music", () => openArcadeSection("music")));
