@@ -63,6 +63,7 @@ const ui = {
     menuCodebreakerButton: document.getElementById("menu-codebreaker-button"),
     menuDodgeButton: document.getElementById("menu-dodge-button"),
     menuFormulaButton: document.getElementById("menu-formula-button"),
+    menuVaultButton: document.getElementById("menu-vault-button"),
     menuMusicButton: document.getElementById("menu-music-button"),
     arcadeStatusText: document.getElementById("arcade-status-text"),
     arcadeChessPanel: document.getElementById("arcade-chess-panel"),
@@ -114,6 +115,14 @@ const ui = {
     arcadeFormulaStartButton: document.getElementById("arcade-formula-start-button"),
     arcadeFormulaBoard: document.getElementById("arcade-formula-board"),
     arcadeFormulaResetButton: document.getElementById("arcade-formula-reset-button"),
+    arcadeVaultPanel: document.getElementById("arcade-vault-panel"),
+    arcadeVaultCount: document.getElementById("arcade-vault-count"),
+    arcadeVaultStatus: document.getElementById("arcade-vault-status"),
+    arcadeVaultGrid: document.getElementById("arcade-vault-grid"),
+    arcadeVaultPreview: document.getElementById("arcade-vault-preview"),
+    arcadeVaultPreviewTitle: document.getElementById("arcade-vault-preview-title"),
+    arcadeVaultPreviewGenre: document.getElementById("arcade-vault-preview-genre"),
+    arcadeVaultPreviewCopy: document.getElementById("arcade-vault-preview-copy"),
     arcadeMusicPanel: document.getElementById("arcade-music-panel"),
     arcadeMusicNowPlaying: document.getElementById("arcade-music-now-playing"),
     arcadeMusicStopButton: document.getElementById("arcade-music-stop-button"),
@@ -264,6 +273,10 @@ const arcadeHub = {
     codebreaker: createInitialCodebreakerState(),
     dodge: createInitialDodgeState(),
     formula: createInitialFormulaState(),
+    vault: {
+        entries: createMatureVaultEntries(),
+        selectedId: ""
+    },
     music: {
         context: null,
         gain: null,
@@ -1195,6 +1208,37 @@ function createInitialFormulaState() {
     };
 }
 
+function createMatureVaultEntries() {
+    const worlds = ["Neon", "Iron", "Glass", "Shadow", "Chrome", "Ash", "Zero", "Midnight", "Static", "Blackout"];
+    const hooks = ["Run", "Protocol", "District", "Break", "Strike", "Drift", "Line", "Signal", "Fall", "Reckoning"];
+    const genres = ["Tactical Shooter", "Street Racing", "Sci-Fi Horror", "Stealth Action", "Survival Thriller"];
+    const tones = ["Hard sci-fi", "Grounded urban", "Gritty survival", "Black-ops suspense", "Dystopian noir"];
+    const pitches = [
+        "Push through high-pressure missions, smarter enemies, and heavier stakes.",
+        "Race, fight, or survive your way through a city that never really sleeps.",
+        "A tougher campaign with sharper consequences and older-teen energy.",
+        "Built around pressure, speed, and split-second choices under bright neon skies.",
+        "A more grounded, older-feeling game pitch with danger, grit, and momentum."
+    ];
+    const covers = ["neon", "redline", "steel", "void", "gold", "cyan"];
+    const entries = [];
+    for (let worldIndex = 0; worldIndex < worlds.length; worldIndex += 1) {
+        for (let hookIndex = 0; hookIndex < hooks.length; hookIndex += 1) {
+            const id = `vault-${worldIndex}-${hookIndex}`;
+            const mix = worldIndex + hookIndex;
+            entries.push({
+                id,
+                title: `${worlds[worldIndex]} ${hooks[hookIndex]}`,
+                genre: genres[mix % genres.length],
+                tone: tones[(worldIndex * 2 + hookIndex) % tones.length],
+                pitch: pitches[(worldIndex + hookIndex * 2) % pitches.length],
+                cover: covers[(worldIndex * 3 + hookIndex) % covers.length]
+            });
+        }
+    }
+    return entries;
+}
+
 function setArcadeStatus(message) {
     if (ui.arcadeStatusText) {
         ui.arcadeStatusText.textContent = message;
@@ -1230,6 +1274,9 @@ function renderArcadePanel() {
     if (ui.arcadeFormulaPanel) {
         ui.arcadeFormulaPanel.classList.toggle("hidden", active !== "formula");
     }
+    if (ui.arcadeVaultPanel) {
+        ui.arcadeVaultPanel.classList.toggle("hidden", active !== "vault");
+    }
     if (ui.arcadeMusicPanel) {
         ui.arcadeMusicPanel.classList.toggle("hidden", active !== "music");
     }
@@ -1260,6 +1307,9 @@ function renderArcadePanel() {
     } else if (active === "formula") {
         setArcadeStatus("Formula Racing 1 is open. Hold your lane and survive the rush.");
         renderFormulaRace();
+    } else if (active === "vault") {
+        setArcadeStatus("15+ Vault is open. Browse the older-audience lineup.");
+        renderMatureVault();
     } else if (active === "music") {
         setArcadeStatus("Music player is open. Pick a track.");
         updateMusicNowPlaying();
@@ -2219,6 +2269,41 @@ function boostFormulaCar() {
     formula.score += 2;
     syncFormulaTimer();
     renderFormulaRace();
+}
+
+function selectVaultEntry(id) {
+    arcadeHub.vault.selectedId = id;
+    renderMatureVault();
+}
+
+function renderMatureVault() {
+    if (!ui.arcadeVaultGrid || !ui.arcadeVaultCount || !ui.arcadeVaultStatus || !ui.arcadeVaultPreviewTitle || !ui.arcadeVaultPreviewGenre || !ui.arcadeVaultPreviewCopy || !ui.arcadeVaultPreview) {
+        return;
+    }
+    const vault = arcadeHub.vault;
+    const entries = vault.entries;
+    if (!vault.selectedId && entries.length) {
+        vault.selectedId = entries[0].id;
+    }
+    const selected = entries.find((entry) => entry.id === vault.selectedId) || entries[0];
+    ui.arcadeVaultCount.textContent = `${entries.length} games`;
+    ui.arcadeVaultStatus.textContent = "100 extra 15+ picks loaded into the vault. Tap a cover to inspect it.";
+    ui.arcadeVaultGrid.innerHTML = entries.map((entry) => `
+        <button class="arcade-vault-card${entry.id === vault.selectedId ? " selected" : ""}" type="button" data-vault-id="${entry.id}">
+            <span class="arcade-vault-card-art arcade-vault-cover-${entry.cover}"></span>
+            <strong>${entry.title}</strong>
+            <span>${entry.genre}</span>
+        </button>
+    `).join("");
+    ui.arcadeVaultGrid.querySelectorAll("[data-vault-id]").forEach((button) => {
+        button.addEventListener("click", () => selectVaultEntry(button.dataset.vaultId));
+    });
+    if (selected) {
+        ui.arcadeVaultPreview.className = `arcade-vault-preview arcade-vault-cover-${selected.cover}`;
+        ui.arcadeVaultPreviewTitle.textContent = selected.title;
+        ui.arcadeVaultPreviewGenre.textContent = `${selected.genre} | ${selected.tone}`;
+        ui.arcadeVaultPreviewCopy.textContent = selected.pitch;
+    }
 }
 
 function brakeFormulaCar() {
@@ -11305,6 +11390,9 @@ if (ui.menuDodgeButton) {
 }
 if (ui.menuFormulaButton) {
     ui.menuFormulaButton.addEventListener("click", () => safelyRun("Open Formula Racing 1", () => openArcadeSection("formula")));
+}
+if (ui.menuVaultButton) {
+    ui.menuVaultButton.addEventListener("click", () => safelyRun("Open 15 Plus Vault", () => openArcadeSection("vault")));
 }
 if (ui.menuMusicButton) {
     ui.menuMusicButton.addEventListener("click", () => safelyRun("Open Music", () => openArcadeSection("music")));
