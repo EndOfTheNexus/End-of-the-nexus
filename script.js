@@ -123,6 +123,7 @@ const ui = {
     arcadeVaultPreviewTitle: document.getElementById("arcade-vault-preview-title"),
     arcadeVaultPreviewGenre: document.getElementById("arcade-vault-preview-genre"),
     arcadeVaultPreviewCopy: document.getElementById("arcade-vault-preview-copy"),
+    arcadeVaultLaunchButton: document.getElementById("arcade-vault-launch-button"),
     arcadeMusicPanel: document.getElementById("arcade-music-panel"),
     arcadeMusicNowPlaying: document.getElementById("arcade-music-now-playing"),
     arcadeMusicStopButton: document.getElementById("arcade-music-stop-button"),
@@ -1213,6 +1214,7 @@ function createMatureVaultEntries() {
     const hooks = ["Run", "Protocol", "District", "Break", "Strike", "Drift", "Line", "Signal", "Fall", "Reckoning"];
     const genres = ["Tactical Shooter", "Street Racing", "Sci-Fi Horror", "Stealth Action", "Survival Thriller"];
     const tones = ["Hard sci-fi", "Grounded urban", "Gritty survival", "Black-ops suspense", "Dystopian noir"];
+    const launchTargets = ["formula", "reaction", "codebreaker", "dodge", "tictactoe", "memory", "checkers", "chess"];
     const pitches = [
         "Push through high-pressure missions, smarter enemies, and heavier stakes.",
         "Race, fight, or survive your way through a city that never really sleeps.",
@@ -1232,7 +1234,8 @@ function createMatureVaultEntries() {
                 genre: genres[mix % genres.length],
                 tone: tones[(worldIndex * 2 + hookIndex) % tones.length],
                 pitch: pitches[(worldIndex + hookIndex * 2) % pitches.length],
-                cover: covers[(worldIndex * 3 + hookIndex) % covers.length]
+                cover: covers[(worldIndex * 3 + hookIndex) % covers.length],
+                launchTarget: launchTargets[(worldIndex * 5 + hookIndex) % launchTargets.length]
             });
         }
     }
@@ -2276,6 +2279,16 @@ function selectVaultEntry(id) {
     renderMatureVault();
 }
 
+function launchVaultEntry(id = arcadeHub.vault.selectedId) {
+    const entry = arcadeHub.vault.entries.find((item) => item.id === id);
+    if (!entry) {
+        return;
+    }
+    arcadeHub.vault.selectedId = entry.id;
+    setArcadeStatus(`${entry.title} is opening in ${entry.launchTarget}.`);
+    openArcadeSection(entry.launchTarget);
+}
+
 function renderMatureVault() {
     if (!ui.arcadeVaultGrid || !ui.arcadeVaultCount || !ui.arcadeVaultStatus || !ui.arcadeVaultPreviewTitle || !ui.arcadeVaultPreviewGenre || !ui.arcadeVaultPreviewCopy || !ui.arcadeVaultPreview) {
         return;
@@ -2287,7 +2300,7 @@ function renderMatureVault() {
     }
     const selected = entries.find((entry) => entry.id === vault.selectedId) || entries[0];
     ui.arcadeVaultCount.textContent = `${entries.length} games`;
-    ui.arcadeVaultStatus.textContent = "100 extra 15+ picks loaded into the vault. Tap a cover to inspect it.";
+    ui.arcadeVaultStatus.textContent = "100 extra 15+ picks loaded into the vault. Tap a cover to inspect it, then tap again to launch.";
     ui.arcadeVaultGrid.innerHTML = entries.map((entry) => `
         <button class="arcade-vault-card${entry.id === vault.selectedId ? " selected" : ""}" type="button" data-vault-id="${entry.id}">
             <span class="arcade-vault-card-art arcade-vault-cover-${entry.cover}"></span>
@@ -2296,13 +2309,23 @@ function renderMatureVault() {
         </button>
     `).join("");
     ui.arcadeVaultGrid.querySelectorAll("[data-vault-id]").forEach((button) => {
-        button.addEventListener("click", () => selectVaultEntry(button.dataset.vaultId));
+        button.addEventListener("click", () => {
+            const targetId = button.dataset.vaultId;
+            if (targetId === vault.selectedId) {
+                launchVaultEntry(targetId);
+                return;
+            }
+            selectVaultEntry(targetId);
+        });
     });
     if (selected) {
         ui.arcadeVaultPreview.className = `arcade-vault-preview arcade-vault-cover-${selected.cover}`;
         ui.arcadeVaultPreviewTitle.textContent = selected.title;
-        ui.arcadeVaultPreviewGenre.textContent = `${selected.genre} | ${selected.tone}`;
-        ui.arcadeVaultPreviewCopy.textContent = selected.pitch;
+        ui.arcadeVaultPreviewGenre.textContent = `${selected.genre} | ${selected.tone} | Opens ${selected.launchTarget}`;
+        ui.arcadeVaultPreviewCopy.textContent = `${selected.pitch} Tap Play This Game to launch its live mode.`;
+    }
+    if (ui.arcadeVaultLaunchButton) {
+        ui.arcadeVaultLaunchButton.onclick = () => launchVaultEntry(selected?.id);
     }
 }
 
