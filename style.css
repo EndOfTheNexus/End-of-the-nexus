@@ -428,8 +428,9 @@ body.play-mode .control-dock {
 
 .arcade-launch-card-story {
     background:
+        radial-gradient(circle at 16% 20%, rgba(90, 255, 226, 0.18), transparent 18%),
         radial-gradient(circle at top left, rgba(255, 211, 107, 0.22), transparent 34%),
-        linear-gradient(160deg, rgba(28, 20, 34, 0.98), rgba(13, 15, 25, 0.98));
+        linear-gradient(160deg, rgba(19, 25, 43, 0.98), rgba(9, 11, 26, 0.98));
 }
 
 .arcade-launch-card-chess {
@@ -472,6 +473,13 @@ body.play-mode .control-dock {
     background:
         radial-gradient(circle at top left, rgba(133, 210, 255, 0.22), transparent 30%),
         linear-gradient(160deg, rgba(15, 18, 36, 0.98), rgba(8, 10, 22, 0.98));
+}
+
+.arcade-launch-card-formula {
+    background:
+        radial-gradient(circle at 78% 20%, rgba(255, 91, 217, 0.18), transparent 18%),
+        radial-gradient(circle at 20% 24%, rgba(90, 255, 226, 0.2), transparent 18%),
+        linear-gradient(160deg, rgba(10, 22, 42, 0.98), rgba(5, 10, 24, 0.98));
 }
 
 .arcade-launch-card-music {
@@ -613,6 +621,12 @@ body.play-mode .control-dock {
     width: min(100%, 360px);
 }
 
+.formula-board {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    width: min(100%, 340px);
+    aspect-ratio: 5 / 7;
+}
+
 .dodge-cell {
     aspect-ratio: 1;
     background:
@@ -634,6 +648,87 @@ body.play-mode .control-dock {
 
 .dodge-cell.core {
     box-shadow: inset 0 0 0 2px rgba(255, 211, 107, 0.92), 0 0 18px rgba(255, 211, 107, 0.32);
+}
+
+.formula-cell {
+    aspect-ratio: 1;
+    background:
+        linear-gradient(180deg, rgba(22, 31, 59, 0.98), rgba(9, 13, 30, 0.98));
+    border: 1px solid rgba(90, 255, 226, 0.12);
+    color: #eff7ff;
+    font-size: clamp(1rem, 3vw, 1.3rem);
+}
+
+.formula-cell::after {
+    content: "";
+    position: absolute;
+    inset: 6% 46%;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.formula-cell.wall {
+    background:
+        linear-gradient(180deg, rgba(255, 91, 217, 0.3), rgba(52, 20, 58, 0.98));
+    box-shadow: inset 0 0 0 1px rgba(255, 91, 217, 0.25);
+}
+
+.formula-cell.wall::after {
+    display: none;
+}
+
+.formula-cell.enemy {
+    color: #ff7f92;
+    text-shadow: 0 0 16px rgba(255, 99, 126, 0.52);
+}
+
+.formula-cell.enemy::before {
+    content: "";
+    position: absolute;
+    inset: 20%;
+    border-radius: 12px;
+    background: rgba(255, 99, 126, 0.12);
+    box-shadow: 0 0 20px rgba(255, 99, 126, 0.22);
+}
+
+.formula-cell.enemy::after {
+    display: none;
+}
+
+.formula-cell.boost {
+    color: #ffd36b;
+    text-shadow: 0 0 16px rgba(255, 211, 107, 0.52);
+}
+
+.formula-cell.boost::before {
+    content: "";
+    position: absolute;
+    inset: 20%;
+    border-radius: 12px;
+    background: rgba(255, 211, 107, 0.12);
+    box-shadow: 0 0 20px rgba(255, 211, 107, 0.22);
+}
+
+.formula-cell.boost::after {
+    display: none;
+}
+
+.formula-cell.player {
+    color: #72fff2;
+    text-shadow: 0 0 18px rgba(90, 255, 226, 0.62);
+}
+
+.formula-cell.player::before {
+    content: "";
+    position: absolute;
+    inset: 16%;
+    border-radius: 14px;
+    background: rgba(90, 255, 226, 0.14);
+    box-shadow: 0 0 24px rgba(90, 255, 226, 0.24);
+}
+
+.formula-cell.player::after {
+    display: none;
 }
 
 .arcade-mini-toolbar {
@@ -765,6 +860,13 @@ body.play-mode .control-dock {
     background:
         radial-gradient(circle at top left, rgba(133, 210, 255, 0.12), transparent 24%),
         linear-gradient(160deg, rgba(12, 20, 36, 0.98), rgba(6, 10, 20, 0.96));
+}
+
+#arcade-formula-panel {
+    background:
+        radial-gradient(circle at top right, rgba(255, 91, 217, 0.12), transparent 24%),
+        radial-gradient(circle at top left, rgba(90, 255, 226, 0.14), transparent 22%),
+        linear-gradient(160deg, rgba(8, 18, 38, 0.98), rgba(5, 9, 22, 0.96));
 }
 
 #arcade-music-panel {

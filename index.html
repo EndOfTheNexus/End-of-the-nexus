@@ -288,6 +288,10 @@
                             <strong>Dodge Arena</strong>
                             <span>Move around a live grid, grab cores, and dodge the hunter.</span>
                         </button>
+                        <button id="menu-formula-button" class="arcade-launch-card arcade-launch-card-formula" type="button">
+                            <strong>Formula Racing 1</strong>
+                            <span>Blast through a neon circuit, dodge traffic, and stack lap points.</span>
+                        </button>
                         <button id="menu-music-button" class="arcade-launch-card arcade-launch-card-music" type="button">
                             <strong>Music</strong>
                             <span>Listen to built-in original synth tracks while you hang out.</span>
@@ -380,6 +384,23 @@
                             <span id="arcade-dodge-best">Best 0</span>
                         </div>
                         <div id="arcade-dodge-board" class="board-grid dodge-board" aria-label="Dodge arena board"></div>
+                    </div>
+
+                    <div id="arcade-formula-panel" class="arcade-tool hidden">
+                        <div class="card-heading">
+                            <span>Formula Racing 1</span>
+                            <button id="arcade-formula-reset-button" class="tiny-action" type="button">Reset</button>
+                        </div>
+                        <p id="arcade-formula-status" class="hero-copy">Use arrows or A and D to change lanes. Avoid rival cars and hit boost pads.</p>
+                        <div class="arcade-score-strip">
+                            <span id="arcade-formula-score">Score 0</span>
+                            <span id="arcade-formula-best">Best 0</span>
+                            <span id="arcade-formula-speed">Speed 1x</span>
+                        </div>
+                        <div class="arcade-mini-toolbar">
+                            <button id="arcade-formula-start-button" class="primary-action" type="button">Start Race</button>
+                        </div>
+                        <div id="arcade-formula-board" class="board-grid formula-board" aria-label="Formula racing board"></div>
                     </div>
 
                     <div id="arcade-music-panel" class="arcade-tool hidden">

@@ -62,6 +62,7 @@ const ui = {
     menuReactionButton: document.getElementById("menu-reaction-button"),
     menuCodebreakerButton: document.getElementById("menu-codebreaker-button"),
     menuDodgeButton: document.getElementById("menu-dodge-button"),
+    menuFormulaButton: document.getElementById("menu-formula-button"),
     menuMusicButton: document.getElementById("menu-music-button"),
     arcadeStatusText: document.getElementById("arcade-status-text"),
     arcadeChessPanel: document.getElementById("arcade-chess-panel"),
@@ -104,6 +105,14 @@ const ui = {
     arcadeDodgeBest: document.getElementById("arcade-dodge-best"),
     arcadeDodgeBoard: document.getElementById("arcade-dodge-board"),
     arcadeDodgeResetButton: document.getElementById("arcade-dodge-reset-button"),
+    arcadeFormulaPanel: document.getElementById("arcade-formula-panel"),
+    arcadeFormulaStatus: document.getElementById("arcade-formula-status"),
+    arcadeFormulaScore: document.getElementById("arcade-formula-score"),
+    arcadeFormulaBest: document.getElementById("arcade-formula-best"),
+    arcadeFormulaSpeed: document.getElementById("arcade-formula-speed"),
+    arcadeFormulaStartButton: document.getElementById("arcade-formula-start-button"),
+    arcadeFormulaBoard: document.getElementById("arcade-formula-board"),
+    arcadeFormulaResetButton: document.getElementById("arcade-formula-reset-button"),
     arcadeMusicPanel: document.getElementById("arcade-music-panel"),
     arcadeMusicNowPlaying: document.getElementById("arcade-music-now-playing"),
     arcadeMusicStopButton: document.getElementById("arcade-music-stop-button"),
@@ -253,6 +262,7 @@ const arcadeHub = {
     reaction: createInitialReactionState(),
     codebreaker: createInitialCodebreakerState(),
     dodge: createInitialDodgeState(),
+    formula: createInitialFormulaState(),
     music: {
         context: null,
         gain: null,
@@ -1168,6 +1178,21 @@ function createInitialDodgeState() {
     };
 }
 
+function createInitialFormulaState() {
+    return {
+        rows: 7,
+        lanes: 5,
+        playerLane: 2,
+        score: 0,
+        best: 0,
+        speed: 1,
+        running: false,
+        crashed: false,
+        trackRows: Array.from({ length: 7 }, () => Array(5).fill("")),
+        timer: null
+    };
+}
+
 function setArcadeStatus(message) {
     if (ui.arcadeStatusText) {
         ui.arcadeStatusText.textContent = message;
@@ -1200,6 +1225,9 @@ function renderArcadePanel() {
     if (ui.arcadeDodgePanel) {
         ui.arcadeDodgePanel.classList.toggle("hidden", active !== "dodge");
     }
+    if (ui.arcadeFormulaPanel) {
+        ui.arcadeFormulaPanel.classList.toggle("hidden", active !== "formula");
+    }
     if (ui.arcadeMusicPanel) {
         ui.arcadeMusicPanel.classList.toggle("hidden", active !== "music");
     }
@@ -1227,6 +1255,9 @@ function renderArcadePanel() {
         setArcadeStatus("Dodge Arena is open. Stay alive and collect cores.");
         startDodgeArena();
         renderDodgeArena();
+    } else if (active === "formula") {
+        setArcadeStatus("Formula Racing 1 is open. Hold your lane and survive the rush.");
+        renderFormulaRace();
     } else if (active === "music") {
         setArcadeStatus("Music player is open. Pick a track.");
         updateMusicNowPlaying();
@@ -1236,6 +1267,9 @@ function renderArcadePanel() {
 function openArcadeSection(section) {
     if (arcadeHub.active === "dodge" && section !== "dodge") {
         stopDodgeArena();
+    }
+    if (arcadeHub.active === "formula" && section !== "formula") {
+        stopFormulaRace();
     }
     requestFullscreenPlay();
     arcadeHub.active = section;
@@ -1270,6 +1304,23 @@ function handleArcadeHotkey(event) {
         if (move) {
             event.preventDefault();
             moveDodgePlayer(move);
+            return true;
+        }
+    }
+    if (arcadeHub.active === "formula" && event.type === "keydown") {
+        if (event.code === "ArrowLeft" || event.code === "KeyA") {
+            event.preventDefault();
+            moveFormulaCar(-1);
+            return true;
+        }
+        if (event.code === "ArrowRight" || event.code === "KeyD") {
+            event.preventDefault();
+            moveFormulaCar(1);
+            return true;
+        }
+        if (event.code === "Enter" || event.code === "Space") {
+            event.preventDefault();
+            startFormulaRace();
             return true;
         }
     }
@@ -1955,6 +2006,139 @@ function moveDodgePlayer(direction) {
         stopDodgeArena();
     }
     renderDodgeArena();
+}
+
+function stopFormulaRace() {
+    const formula = arcadeHub.formula;
+    if (formula.timer) {
+        window.clearInterval(formula.timer);
+        formula.timer = null;
+    }
+    formula.running = false;
+}
+
+function renderFormulaRace() {
+    if (!ui.arcadeFormulaBoard || !ui.arcadeFormulaStatus || !ui.arcadeFormulaScore || !ui.arcadeFormulaBest || !ui.arcadeFormulaSpeed) {
+        return;
+    }
+    const formula = arcadeHub.formula;
+    ui.arcadeFormulaStatus.textContent = formula.crashed
+        ? "Crash. Reset or start again to hit the circuit."
+        : formula.running
+            ? "Thread the traffic, hit boost pads, and stay off the walls."
+            : "Use arrows or A and D to change lanes. Press Start Race when ready.";
+    ui.arcadeFormulaScore.textContent = `Score ${formula.score}`;
+    ui.arcadeFormulaBest.textContent = `Best ${formula.best}`;
+    ui.arcadeFormulaSpeed.textContent = `Speed ${formula.speed.toFixed(1)}x`;
+
+    const cells = [];
+    formula.trackRows.forEach((row, rowIndex) => {
+        row.forEach((tile, colIndex) => {
+            const isPlayer = rowIndex === formula.rows - 1 && colIndex === formula.playerLane;
+            const classNames = ["board-cell", "formula-cell"];
+            let glyph = "";
+            if (colIndex === 0 || colIndex === formula.lanes - 1) {
+                classNames.push("wall");
+            }
+            if (tile === "enemy") {
+                classNames.push("enemy");
+                glyph = "▣";
+            } else if (tile === "boost") {
+                classNames.push("boost");
+                glyph = "✦";
+            }
+            if (isPlayer) {
+                classNames.push("player");
+                glyph = "▲";
+            }
+            cells.push(`<div class="${classNames.join(" ")}">${glyph}</div>`);
+        });
+    });
+    ui.arcadeFormulaBoard.innerHTML = cells.join("");
+}
+
+function createFormulaTrackRow(lanes) {
+    const row = Array(lanes).fill("");
+    row[0] = "wall";
+    row[lanes - 1] = "wall";
+    const usableLanes = [];
+    for (let lane = 1; lane < lanes - 1; lane += 1) {
+        usableLanes.push(lane);
+    }
+    const enemyLane = usableLanes[Math.floor(Math.random() * usableLanes.length)];
+    row[enemyLane] = Math.random() < 0.68 ? "enemy" : "";
+    if (Math.random() < 0.28) {
+        const boostChoices = usableLanes.filter((lane) => lane !== enemyLane);
+        const boostLane = boostChoices[Math.floor(Math.random() * boostChoices.length)];
+        if (boostLane !== undefined) {
+            row[boostLane] = "boost";
+        }
+    }
+    return row;
+}
+
+function tickFormulaRace() {
+    const formula = arcadeHub.formula;
+    if (!formula.running || formula.crashed) {
+        return;
+    }
+    const nextBottom = formula.trackRows[formula.rows - 2][formula.playerLane];
+    if (nextBottom === "enemy") {
+        formula.crashed = true;
+        formula.best = Math.max(formula.best, formula.score);
+        stopFormulaRace();
+        renderFormulaRace();
+        return;
+    }
+    if (nextBottom === "boost") {
+        formula.speed = Math.min(3.5, formula.speed + 0.2);
+        formula.score += 8;
+    }
+    formula.trackRows.pop();
+    formula.trackRows.unshift(createFormulaTrackRow(formula.lanes));
+    formula.score += Math.max(1, Math.round(formula.speed * 2));
+    formula.best = Math.max(formula.best, formula.score);
+    if (formula.score > 0 && formula.score % 40 === 0) {
+        formula.speed = Math.min(3.5, formula.speed + 0.1);
+    }
+    renderFormulaRace();
+}
+
+function startFormulaRace() {
+    const formula = arcadeHub.formula;
+    if (formula.crashed) {
+        arcadeHub.formula = createInitialFormulaState();
+    }
+    const activeFormula = arcadeHub.formula;
+    if (activeFormula.timer) {
+        return;
+    }
+    activeFormula.running = true;
+    activeFormula.crashed = false;
+    renderFormulaRace();
+    activeFormula.timer = window.setInterval(() => {
+        tickFormulaRace();
+    }, Math.max(170, 420 - Math.round(activeFormula.speed * 55)));
+}
+
+function moveFormulaCar(direction) {
+    const formula = arcadeHub.formula;
+    if (arcadeHub.active !== "formula" || formula.crashed) {
+        return;
+    }
+    const nextLane = Math.max(1, Math.min(formula.lanes - 2, formula.playerLane + direction));
+    formula.playerLane = nextLane;
+    const tile = formula.trackRows[formula.rows - 1][formula.playerLane];
+    if (tile === "enemy") {
+        formula.crashed = true;
+        formula.best = Math.max(formula.best, formula.score);
+        stopFormulaRace();
+    } else if (tile === "boost") {
+        formula.speed = Math.min(3.5, formula.speed + 0.15);
+        formula.score += 5;
+        formula.trackRows[formula.rows - 1][formula.playerLane] = "";
+    }
+    renderFormulaRace();
 }
 
 function stopArcadeMusic() {
@@ -11004,6 +11188,7 @@ if (ui.homeChatButton) {
 if (ui.menuEndOfTheNexusButton) {
     ui.menuEndOfTheNexusButton.addEventListener("click", () => safelyRun("Open End of the Nexus", () => {
         stopDodgeArena();
+        stopFormulaRace();
         showHomePanel("main");
     }));
 }
@@ -11027,6 +11212,9 @@ if (ui.menuCodebreakerButton) {
 }
 if (ui.menuDodgeButton) {
     ui.menuDodgeButton.addEventListener("click", () => safelyRun("Open Dodge Arena", () => openArcadeSection("dodge")));
+}
+if (ui.menuFormulaButton) {
+    ui.menuFormulaButton.addEventListener("click", () => safelyRun("Open Formula Racing 1", () => openArcadeSection("formula")));
 }
 if (ui.menuMusicButton) {
     ui.menuMusicButton.addEventListener("click", () => safelyRun("Open Music", () => openArcadeSection("music")));
@@ -11098,6 +11286,16 @@ if (ui.arcadeDodgeResetButton) {
         renderDodgeArena();
     }));
 }
+if (ui.arcadeFormulaStartButton) {
+    ui.arcadeFormulaStartButton.addEventListener("click", () => safelyRun("Start Formula Racing 1", startFormulaRace));
+}
+if (ui.arcadeFormulaResetButton) {
+    ui.arcadeFormulaResetButton.addEventListener("click", () => safelyRun("Reset Formula Racing 1", () => {
+        stopFormulaRace();
+        arcadeHub.formula = createInitialFormulaState();
+        renderFormulaRace();
+    }));
+}
 if (ui.arcadeMusicStopButton) {
     ui.arcadeMusicStopButton.addEventListener("click", () => safelyRun("Stop Music", stopArcadeMusic));
 }
@@ -11115,6 +11313,7 @@ if (ui.multiplayerJoinButton) {
 document.querySelectorAll("[data-home-back]").forEach((button) => {
     button.addEventListener("click", () => safelyRun("Back", () => {
         stopDodgeArena();
+        stopFormulaRace();
         showHomePanel("main");
     }));
 });
