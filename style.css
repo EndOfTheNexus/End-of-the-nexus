@@ -865,6 +865,7 @@ body.play-mode #home-arcade-panel .arcade-tool {
 .vaultgame-board {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     width: min(100%, 360px);
+    border: 1px solid rgba(133, 210, 255, 0.18);
 }
 
 .dodge-cell {
@@ -979,6 +980,49 @@ body.play-mode #home-arcade-panel .arcade-tool {
     border: 1px solid rgba(133, 210, 255, 0.12);
     color: #eef6ff;
     font-size: clamp(1rem, 4vw, 1.4rem);
+}
+
+.vaultgame-cell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 35%);
+}
+
+.vault-scene-neon .vaultgame-cell {
+    background:
+        radial-gradient(circle at 24% 20%, rgba(90, 255, 226, 0.14), transparent 18%),
+        linear-gradient(160deg, rgba(12, 28, 46, 0.98), rgba(6, 10, 22, 0.98));
+}
+
+.vault-scene-redline .vaultgame-cell {
+    background:
+        radial-gradient(circle at 78% 18%, rgba(255, 99, 126, 0.16), transparent 18%),
+        linear-gradient(160deg, rgba(33, 14, 19, 0.98), rgba(11, 8, 14, 0.98));
+}
+
+.vault-scene-steel .vaultgame-cell {
+    background:
+        radial-gradient(circle at 28% 20%, rgba(214, 226, 240, 0.12), transparent 18%),
+        linear-gradient(160deg, rgba(28, 31, 39, 0.98), rgba(10, 12, 18, 0.98));
+}
+
+.vault-scene-void .vaultgame-cell {
+    background:
+        radial-gradient(circle at 24% 18%, rgba(176, 129, 255, 0.14), transparent 18%),
+        linear-gradient(160deg, rgba(21, 13, 38, 0.98), rgba(8, 8, 20, 0.98));
+}
+
+.vault-scene-gold .vaultgame-cell {
+    background:
+        radial-gradient(circle at 24% 20%, rgba(255, 211, 107, 0.16), transparent 18%),
+        linear-gradient(160deg, rgba(35, 24, 14, 0.98), rgba(14, 10, 7, 0.98));
+}
+
+.vault-scene-cyan .vaultgame-cell {
+    background:
+        radial-gradient(circle at 24% 20%, rgba(133, 210, 255, 0.18), transparent 18%),
+        linear-gradient(160deg, rgba(10, 25, 30, 0.98), rgba(6, 11, 14, 0.98));
 }
 
 .vaultgame-cell.player {
@@ -1098,6 +1142,41 @@ body.play-mode #home-arcade-panel .arcade-tool {
 
 .vault-character.rival.steel .vault-body {
     background: linear-gradient(180deg, rgba(214, 226, 240, 0.96), rgba(74, 86, 98, 0.96));
+}
+
+.vault-weapon {
+    position: absolute;
+    top: 34%;
+    right: 4%;
+    height: 10%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(218, 228, 240, 0.96), rgba(88, 101, 117, 0.96));
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.vault-weapon::before {
+    content: "";
+    position: absolute;
+    left: -18%;
+    top: 24%;
+    width: 18%;
+    height: 52%;
+    border-radius: 4px;
+    background: rgba(43, 25, 12, 0.88);
+}
+
+.vault-weapon.rifle {
+    width: 30%;
+    transform: rotate(-18deg);
+}
+
+.vault-weapon.blaster {
+    width: 24%;
+    transform: rotate(16deg);
+}
+
+.vault-character.rival .vault-weapon {
+    background: linear-gradient(180deg, rgba(255, 202, 214, 0.96), rgba(120, 54, 68, 0.96));
 }
 
 .shard-core {

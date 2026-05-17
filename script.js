@@ -2415,6 +2415,7 @@ function getVaultCharacterMarkup(kind, look = "") {
                 <span class="vault-arm right"></span>
                 <span class="vault-leg left"></span>
                 <span class="vault-leg right"></span>
+                <span class="vault-weapon rifle"></span>
             </div>
         `;
     }
@@ -2427,6 +2428,7 @@ function getVaultCharacterMarkup(kind, look = "") {
                 <span class="vault-arm right"></span>
                 <span class="vault-leg left"></span>
                 <span class="vault-leg right"></span>
+                <span class="vault-weapon blaster"></span>
             </div>
         `;
     }
@@ -2456,6 +2458,7 @@ function renderVaultMission() {
     } else {
         ui.arcadeVaultGameStatus.textContent = `Use arrows or WASD. Grab all shards, outrun ${mission.rivalName}, then reach the exit gate.`;
     }
+    ui.arcadeVaultGameBoard.className = `board-grid vaultgame-board vault-scene-${mission.cover}`;
 
     const cells = [];
     for (let row = 0; row < mission.size; row += 1) {
