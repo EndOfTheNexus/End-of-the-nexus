@@ -130,6 +130,7 @@ const ui = {
     arcadeVaultGameScore: document.getElementById("arcade-vaultgame-score"),
     arcadeVaultGameGenre: document.getElementById("arcade-vaultgame-genre"),
     arcadeVaultGameTone: document.getElementById("arcade-vaultgame-tone"),
+    arcadeVaultGameRival: document.getElementById("arcade-vaultgame-rival"),
     arcadeVaultGameBoard: document.getElementById("arcade-vaultgame-board"),
     arcadeVaultGameResetButton: document.getElementById("arcade-vaultgame-reset-button"),
     arcadeMusicPanel: document.getElementById("arcade-music-panel"),
@@ -1260,6 +1261,9 @@ function hashVaultString(text) {
 function createVaultMission(entry) {
     const size = 5;
     const seed = hashVaultString(entry.id);
+    const rivalNames = ["Nyx Voss", "Rex Kade", "Iris Black", "Mako Drift", "Juno Vale", "Vega Thorn"];
+    const playerLooks = ["cyan", "gold", "steel"];
+    const rivalLooks = ["crimson", "violet", "steel"];
     const used = new Set(["4:2"]);
     const reserveSpot = () => {
         let cursor = used.size;
@@ -1279,12 +1283,16 @@ function createVaultMission(entry) {
     const exit = reserveSpot();
     const shards = [reserveSpot(), reserveSpot(), reserveSpot()];
     const sentries = [reserveSpot(), reserveSpot()];
+    const rivalName = rivalNames[seed % rivalNames.length];
     return {
         entryId: entry.id,
         title: entry.title,
         genre: entry.genre,
         tone: entry.tone,
         cover: entry.cover,
+        rivalName,
+        playerLook: playerLooks[seed % playerLooks.length],
+        rivalLook: rivalLooks[(seed + 2) % rivalLooks.length],
         size,
         player: { row: 4, col: 2 },
         exit,
@@ -2373,45 +2381,81 @@ function positionsMatch(a, b) {
     return a.row === b.row && a.col === b.col;
 }
 
+function getVaultCharacterMarkup(kind, look = "") {
+    const lookClass = look ? ` ${look}` : "";
+    if (kind === "player") {
+        return `
+            <div class="vault-character hero${lookClass}">
+                <span class="vault-head"></span>
+                <span class="vault-body"></span>
+                <span class="vault-arm left"></span>
+                <span class="vault-arm right"></span>
+                <span class="vault-leg left"></span>
+                <span class="vault-leg right"></span>
+            </div>
+        `;
+    }
+    if (kind === "rival") {
+        return `
+            <div class="vault-character rival${lookClass}">
+                <span class="vault-head"></span>
+                <span class="vault-body"></span>
+                <span class="vault-arm left"></span>
+                <span class="vault-arm right"></span>
+                <span class="vault-leg left"></span>
+                <span class="vault-leg right"></span>
+            </div>
+        `;
+    }
+    if (kind === "shard") {
+        return `<div class="vault-collectible shard-core"></div>`;
+    }
+    if (kind === "exit") {
+        return `<div class="vault-exit-gate"><span></span></div>`;
+    }
+    return "";
+}
+
 function renderVaultMission() {
     const mission = arcadeHub.vaultGame;
-    if (!mission || !ui.arcadeVaultGameTitle || !ui.arcadeVaultGameStatus || !ui.arcadeVaultGameScore || !ui.arcadeVaultGameGenre || !ui.arcadeVaultGameTone || !ui.arcadeVaultGameBoard) {
+    if (!mission || !ui.arcadeVaultGameTitle || !ui.arcadeVaultGameStatus || !ui.arcadeVaultGameScore || !ui.arcadeVaultGameGenre || !ui.arcadeVaultGameTone || !ui.arcadeVaultGameRival || !ui.arcadeVaultGameBoard) {
         return;
     }
     ui.arcadeVaultGameTitle.textContent = mission.title;
     ui.arcadeVaultGameScore.textContent = `Shards ${mission.collected}/3`;
     ui.arcadeVaultGameGenre.textContent = mission.genre;
     ui.arcadeVaultGameTone.textContent = mission.tone;
+    ui.arcadeVaultGameRival.textContent = `Rival ${mission.rivalName}`;
     if (mission.won) {
         ui.arcadeVaultGameStatus.textContent = "Mission clear. You grabbed every shard and escaped.";
     } else if (mission.lost) {
-        ui.arcadeVaultGameStatus.textContent = "Mission failed. A sentry caught you. Reset and try again.";
+        ui.arcadeVaultGameStatus.textContent = `${mission.rivalName} caught you. Reset and try again.`;
     } else {
-        ui.arcadeVaultGameStatus.textContent = "Use arrows or WASD. Grab all shards, then reach the exit gate.";
+        ui.arcadeVaultGameStatus.textContent = `Use arrows or WASD. Grab all shards, outrun ${mission.rivalName}, then reach the exit gate.`;
     }
 
     const cells = [];
     for (let row = 0; row < mission.size; row += 1) {
         for (let col = 0; col < mission.size; col += 1) {
             const classNames = ["board-cell", "vaultgame-cell"];
-            let glyph = "";
+            let markup = "";
             if (positionsMatch(mission.exit, { row, col })) {
                 classNames.push("exit");
-                glyph = "◎";
+                markup = getVaultCharacterMarkup("exit");
             }
             if (mission.shards.some((shard) => positionsMatch(shard, { row, col }))) {
                 classNames.push("shard");
-                glyph = "✦";
+                markup = getVaultCharacterMarkup("shard");
             }
             if (mission.sentries.some((sentry) => positionsMatch(sentry, { row, col }))) {
                 classNames.push("sentry");
-                glyph = "▲";
+                markup = getVaultCharacterMarkup("rival", mission.rivalLook);
             }
             if (positionsMatch(mission.player, { row, col })) {
                 classNames.push("player");
-                glyph = "◆";
+                markup = getVaultCharacterMarkup("player", mission.playerLook);
             }
-            cells.push(`<div class="${classNames.join(" ")}">${glyph}</div>`);
+            cells.push(`<div class="${classNames.join(" ")}">${markup}</div>`);
         }
     }
     ui.arcadeVaultGameBoard.innerHTML = cells.join("");
