@@ -93,6 +93,10 @@ const ui = {
     arcadeCodebreakerInput: document.getElementById("arcade-codebreaker-input"),
     arcadeCodebreakerSubmitButton: document.getElementById("arcade-codebreaker-submit-button"),
     arcadeCodebreakerLog: document.getElementById("arcade-codebreaker-log"),
+    arcadeCodebreakerBonus: document.getElementById("arcade-codebreaker-bonus"),
+    arcadeCodebreakerBonusCount: document.getElementById("arcade-codebreaker-bonus-count"),
+    arcadeCodebreakerBonusStatus: document.getElementById("arcade-codebreaker-bonus-status"),
+    arcadeCodebreakerBonusOptions: document.getElementById("arcade-codebreaker-bonus-options"),
     arcadeCodebreakerResetButton: document.getElementById("arcade-codebreaker-reset-button"),
     arcadeDodgePanel: document.getElementById("arcade-dodge-panel"),
     arcadeDodgeStatus: document.getElementById("arcade-dodge-status"),
@@ -1111,7 +1115,43 @@ function createInitialCodebreakerState() {
     return {
         secret: generateCodebreakerSecret(),
         guesses: [],
-        solved: false
+        solved: false,
+        bonusWins: 0,
+        currentTrial: null
+    };
+}
+
+function createCodebreakerTrial() {
+    const trials = [
+        {
+            prompt: "A shadow dragon charges. What beats it fastest?",
+            options: ["Sun Blade", "Broken Lantern", "Rusty Key", "Sleep Spell"],
+            answer: "Sun Blade",
+            success: "Clean hit. The shadow dragon drops a relic shard."
+        },
+        {
+            prompt: "Which gate rune keeps the Nexus stable?",
+            options: ["Blue Spiral", "Void Fang", "Ash Skull", "Noise Rune"],
+            answer: "Blue Spiral",
+            success: "You sealed the rune in time and held the gate."
+        },
+        {
+            prompt: "A fortress alarm trips. What should you grab first?",
+            options: ["Shield Core", "Party Hat", "Broken Arrow", "Dust Bottle"],
+            answer: "Shield Core",
+            success: "Smart move. The shield core tanks the next blast."
+        },
+        {
+            prompt: "Which pickup helps most in a boss rush?",
+            options: ["Health Orb", "Wet Sock", "Tiny Pebble", "Cracked Spoon"],
+            answer: "Health Orb",
+            success: "Clutch choice. Your run keeps going."
+        }
+    ];
+    const choice = trials[Math.floor(Math.random() * trials.length)];
+    return {
+        ...choice,
+        resolved: false
     };
 }
 
@@ -1197,6 +1237,7 @@ function openArcadeSection(section) {
     if (arcadeHub.active === "dodge" && section !== "dodge") {
         stopDodgeArena();
     }
+    requestFullscreenPlay();
     arcadeHub.active = section;
     showHomePanel("arcade");
 }
@@ -1536,7 +1577,9 @@ function renderTicTacToeBoard() {
         ? (ttt.winner === "draw" ? "Draw game. Reset to play again." : `${ttt.winner} wins.`)
         : `${ttt.turn} to move.`;
     ui.arcadeTicTacToeBoard.innerHTML = ttt.board.map((cell, index) => `
-        <button class="board-cell ttt-cell" type="button" data-ttt-index="${index}">${cell || ""}</button>
+        <button class="board-cell ttt-cell${cell === "X" ? " x-cell" : ""}${cell === "O" ? " o-cell" : ""}" type="button" data-ttt-index="${index}">
+            <span class="ttt-symbol">${cell || ""}</span>
+        </button>
     `).join("");
     ui.arcadeTicTacToeBoard.querySelectorAll("[data-ttt-index]").forEach((button) => {
         button.addEventListener("click", () => handleTicTacToeClick(Number(button.dataset.tttIndex)));
@@ -1568,7 +1611,7 @@ function renderMemoryBoard() {
         const isVisible = card.revealed || card.matched;
         return `
             <button class="board-cell memory-cell${isVisible ? " revealed" : ""}${card.matched ? " matched" : ""}" type="button" data-memory-index="${index}">
-                ${isVisible ? card.icon : "?"}
+                <span class="memory-face">${isVisible ? card.icon : "✦"}</span>
             </button>
         `;
     }).join("");
@@ -1708,7 +1751,7 @@ function renderCodebreaker() {
     }
     const codebreaker = arcadeHub.codebreaker;
     ui.arcadeCodebreakerStatus.textContent = codebreaker.solved
-        ? `Vault cracked in ${codebreaker.guesses.length} guesses. Reset for a new code.`
+        ? `Vault cracked in ${codebreaker.guesses.length} guesses. Bonus round unlocked.`
         : `Guess the 4-digit code. Hits are exact. Near-miss means right digit, wrong spot.`;
     ui.arcadeCodebreakerLog.innerHTML = codebreaker.guesses.length
         ? codebreaker.guesses.map((entry) => `
@@ -1717,6 +1760,65 @@ function renderCodebreaker() {
             </div>
         `).join("")
         : `<div class="arcade-log-entry">No guesses yet. Try a 4-digit code with no repeats.</div>`;
+    renderCodebreakerBonusRound();
+}
+
+function renderCodebreakerBonusRound() {
+    if (!ui.arcadeCodebreakerBonus || !ui.arcadeCodebreakerBonusCount || !ui.arcadeCodebreakerBonusStatus || !ui.arcadeCodebreakerBonusOptions) {
+        return;
+    }
+    const codebreaker = arcadeHub.codebreaker;
+    ui.arcadeCodebreakerBonus.classList.toggle("hidden", !codebreaker.solved);
+    ui.arcadeCodebreakerBonusCount.textContent = `Wins ${codebreaker.bonusWins}`;
+    if (!codebreaker.solved || !codebreaker.currentTrial) {
+        ui.arcadeCodebreakerBonusStatus.textContent = "Crack the code to unlock a trial.";
+        ui.arcadeCodebreakerBonusOptions.innerHTML = "";
+        return;
+    }
+    ui.arcadeCodebreakerBonusStatus.textContent = codebreaker.currentTrial.prompt;
+    ui.arcadeCodebreakerBonusOptions.innerHTML = codebreaker.currentTrial.options.map((option) => `
+        <button class="ghost-action arcade-bonus-option" type="button" data-codebreaker-option="${option}">
+            ${option}
+        </button>
+    `).join("");
+    ui.arcadeCodebreakerBonusOptions.querySelectorAll("[data-codebreaker-option]").forEach((button) => {
+        button.addEventListener("click", () => handleCodebreakerBonusChoice(button.dataset.codebreakerOption));
+    });
+}
+
+function handleCodebreakerBonusChoice(option) {
+    const codebreaker = arcadeHub.codebreaker;
+    const trial = codebreaker.currentTrial;
+    if (!trial || trial.resolved) {
+        return;
+    }
+    trial.resolved = true;
+    if (option === trial.answer) {
+        codebreaker.bonusWins += 1;
+        ui.arcadeCodebreakerBonusStatus.textContent = `${trial.success} Bonus win ${codebreaker.bonusWins}.`;
+    } else {
+        ui.arcadeCodebreakerBonusStatus.textContent = `That choice got your squad wiped. The right play was ${trial.answer}.`;
+    }
+    ui.arcadeCodebreakerBonusOptions.innerHTML = `
+        <button id="arcade-codebreaker-next-trial" class="primary-action arcade-bonus-option" type="button">
+            New Code + New Trial
+        </button>
+    `;
+    const nextTrialButton = document.getElementById("arcade-codebreaker-next-trial");
+    if (nextTrialButton) {
+        nextTrialButton.addEventListener("click", resetCodebreakerForNextTrial);
+    }
+    ui.arcadeCodebreakerBonusCount.textContent = `Wins ${codebreaker.bonusWins}`;
+}
+
+function resetCodebreakerForNextTrial() {
+    const bonusWins = arcadeHub.codebreaker.bonusWins;
+    arcadeHub.codebreaker = createInitialCodebreakerState();
+    arcadeHub.codebreaker.bonusWins = bonusWins;
+    if (ui.arcadeCodebreakerInput) {
+        ui.arcadeCodebreakerInput.value = "";
+    }
+    renderCodebreaker();
 }
 
 function submitCodebreakerGuess() {
@@ -1740,6 +1842,9 @@ function submitCodebreakerGuess() {
     const score = scoreCodebreakerGuess(codebreaker.secret, rawGuess);
     codebreaker.guesses.unshift({ guess: rawGuess, ...score });
     codebreaker.solved = score.hits === 4;
+    if (codebreaker.solved) {
+        codebreaker.currentTrial = createCodebreakerTrial();
+    }
     if (ui.arcadeCodebreakerInput) {
         ui.arcadeCodebreakerInput.value = "";
     }
