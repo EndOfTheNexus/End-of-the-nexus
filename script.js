@@ -1320,6 +1320,16 @@ function handleArcadeHotkey(event) {
             moveFormulaCar(1);
             return true;
         }
+        if (event.code === "ArrowUp" || event.code === "KeyW") {
+            event.preventDefault();
+            boostFormulaCar();
+            return true;
+        }
+        if (event.code === "ArrowDown" || event.code === "KeyS") {
+            event.preventDefault();
+            brakeFormulaCar();
+            return true;
+        }
         if (event.code === "Enter" || event.code === "Space") {
             event.preventDefault();
             startFormulaRace();
@@ -2041,6 +2051,24 @@ function syncFormulaTimer() {
     }, Math.max(150, 420 - Math.round(formula.speed * 65)));
 }
 
+function getFormulaCarMarkup(kind) {
+    const isPlayer = kind === "player";
+    const nose = isPlayer ? "▲" : "▼";
+    return `
+        <div class="formula-car ${isPlayer ? "player-car" : "enemy-car"}">
+            <span class="formula-nose">${nose}</span>
+            <span class="formula-wing left"></span>
+            <span class="formula-wing right"></span>
+            <span class="formula-cockpit"></span>
+            <span class="formula-tail"></span>
+            <span class="formula-wheel front-left"></span>
+            <span class="formula-wheel front-right"></span>
+            <span class="formula-wheel rear-left"></span>
+            <span class="formula-wheel rear-right"></span>
+        </div>
+    `;
+}
+
 function renderFormulaRace() {
     if (!ui.arcadeFormulaBoard || !ui.arcadeFormulaStatus || !ui.arcadeFormulaScore || !ui.arcadeFormulaBest || !ui.arcadeFormulaSpeed || !ui.arcadeFormulaLaps) {
         return;
@@ -2067,22 +2095,22 @@ function renderFormulaRace() {
         row.forEach((tile, colIndex) => {
             const isPlayer = rowIndex === formula.rows - 1 && colIndex === formula.playerLane;
             const classNames = ["board-cell", "formula-cell"];
-            let glyph = "";
+            let markup = "";
             if (colIndex === 0 || colIndex === formula.lanes - 1) {
                 classNames.push("wall");
             }
             if (tile === "enemy") {
                 classNames.push("enemy");
-                glyph = "▣";
+                markup = getFormulaCarMarkup("enemy");
             } else if (tile === "boost") {
                 classNames.push("boost");
-                glyph = "✦";
+                markup = `<span class="formula-boost-glyph">✦</span>`;
             }
             if (isPlayer) {
                 classNames.push("player");
-                glyph = "▲";
+                markup = getFormulaCarMarkup("player");
             }
-            cells.push(`<div class="${classNames.join(" ")}">${glyph}</div>`);
+            cells.push(`<div class="${classNames.join(" ")}">${markup}</div>`);
         });
     });
     ui.arcadeFormulaBoard.innerHTML = cells.join("");
@@ -2175,6 +2203,31 @@ function moveFormulaCar(direction) {
         formula.trackRows[formula.rows - 1][formula.playerLane] = "";
         syncFormulaTimer();
     }
+    renderFormulaRace();
+}
+
+function boostFormulaCar() {
+    const formula = arcadeHub.formula;
+    if (arcadeHub.active !== "formula" || formula.crashed) {
+        return;
+    }
+    if (!formula.running) {
+        startFormulaRace();
+        return;
+    }
+    formula.speed = Math.min(3.8, formula.speed + 0.18);
+    formula.score += 2;
+    syncFormulaTimer();
+    renderFormulaRace();
+}
+
+function brakeFormulaCar() {
+    const formula = arcadeHub.formula;
+    if (arcadeHub.active !== "formula" || formula.crashed) {
+        return;
+    }
+    formula.speed = Math.max(0.9, formula.speed - 0.18);
+    syncFormulaTimer();
     renderFormulaRace();
 }
 
