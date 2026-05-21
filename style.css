@@ -864,8 +864,37 @@ body.play-mode #home-arcade-panel .arcade-tool {
 
 .vaultgame-board {
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    width: min(100%, 420px);
-    border: 1px solid rgba(133, 210, 255, 0.18);
+    position: relative;
+    gap: 6px;
+    width: min(100%, 520px);
+    padding: 18px;
+    aspect-ratio: 1 / 1;
+    border: 1px solid rgba(133, 210, 255, 0.14);
+    background:
+        radial-gradient(circle at 50% 50%, rgba(133, 210, 255, 0.08), transparent 52%),
+        linear-gradient(160deg, rgba(8, 12, 24, 0.98), rgba(4, 7, 16, 0.98));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 18px 34px rgba(0, 0, 0, 0.32);
+}
+
+.vaultgame-board::before {
+    content: "";
+    position: absolute;
+    inset: 16px;
+    border-radius: 24px;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.03) 20%, transparent 40%, rgba(255, 255, 255, 0.03) 60%, transparent 80%, rgba(255, 255, 255, 0.03) 100%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%, transparent 76%, rgba(255, 255, 255, 0.03));
+    opacity: 0.75;
+}
+
+.vaultgame-board::after {
+    content: "";
+    position: absolute;
+    inset: 28px;
+    border-radius: 22px;
+    pointer-events: none;
+    border: 1px solid rgba(133, 210, 255, 0.08);
 }
 
 .dodge-cell {
@@ -974,10 +1003,10 @@ body.play-mode #home-arcade-panel .arcade-tool {
     position: relative;
     overflow: hidden;
     aspect-ratio: 1;
-    background:
-        radial-gradient(circle at 25% 24%, rgba(133, 210, 255, 0.12), transparent 18%),
-        linear-gradient(160deg, rgba(16, 20, 36, 0.98), rgba(7, 10, 20, 0.98));
-    border: 1px solid rgba(133, 210, 255, 0.12);
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: 0;
     color: #eef6ff;
     font-size: clamp(1rem, 4vw, 1.4rem);
 }
@@ -985,50 +1014,49 @@ body.play-mode #home-arcade-panel .arcade-tool {
 .vaultgame-cell::before {
     content: "";
     position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 35%);
+    inset: 12%;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.08), transparent 44%),
+        radial-gradient(circle at 50% 70%, rgba(0, 0, 0, 0.22), transparent 72%);
+    opacity: 0.55;
 }
 
 .vault-scene-neon .vaultgame-cell {
-    background:
-        radial-gradient(circle at 24% 20%, rgba(90, 255, 226, 0.14), transparent 18%),
-        linear-gradient(160deg, rgba(12, 28, 46, 0.98), rgba(6, 10, 22, 0.98));
+    color: #dffcff;
 }
 
 .vault-scene-redline .vaultgame-cell {
-    background:
-        radial-gradient(circle at 78% 18%, rgba(255, 99, 126, 0.16), transparent 18%),
-        linear-gradient(160deg, rgba(33, 14, 19, 0.98), rgba(11, 8, 14, 0.98));
+    color: #ffe6ea;
 }
 
 .vault-scene-steel .vaultgame-cell {
-    background:
-        radial-gradient(circle at 28% 20%, rgba(214, 226, 240, 0.12), transparent 18%),
-        linear-gradient(160deg, rgba(28, 31, 39, 0.98), rgba(10, 12, 18, 0.98));
+    color: #edf4ff;
 }
 
 .vault-scene-void .vaultgame-cell {
-    background:
-        radial-gradient(circle at 24% 18%, rgba(176, 129, 255, 0.14), transparent 18%),
-        linear-gradient(160deg, rgba(21, 13, 38, 0.98), rgba(8, 8, 20, 0.98));
+    color: #ece3ff;
 }
 
 .vault-scene-gold .vaultgame-cell {
-    background:
-        radial-gradient(circle at 24% 20%, rgba(255, 211, 107, 0.16), transparent 18%),
-        linear-gradient(160deg, rgba(35, 24, 14, 0.98), rgba(14, 10, 7, 0.98));
+    color: #fff0cc;
 }
 
 .vault-scene-cyan .vaultgame-cell {
-    background:
-        radial-gradient(circle at 24% 20%, rgba(133, 210, 255, 0.18), transparent 18%),
-        linear-gradient(160deg, rgba(10, 25, 30, 0.98), rgba(6, 11, 14, 0.98));
+    color: #dffcff;
 }
 
 .vaultgame-cell.player {
     color: #72fff2;
     text-shadow: 0 0 16px rgba(90, 255, 226, 0.52);
-    box-shadow: inset 0 0 0 2px rgba(90, 255, 226, 0.3);
+}
+
+.vaultgame-cell.player::before {
+    inset: 4%;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, rgba(90, 255, 226, 0.34), rgba(90, 255, 226, 0.06) 54%, rgba(90, 255, 226, 0) 72%);
+    opacity: 1;
 }
 
 .vaultgame-cell.sentry {
@@ -1036,14 +1064,38 @@ body.play-mode #home-arcade-panel .arcade-tool {
     text-shadow: 0 0 16px rgba(255, 99, 126, 0.48);
 }
 
+.vaultgame-cell.sentry::before {
+    inset: 6%;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, rgba(255, 99, 126, 0.32), rgba(255, 99, 126, 0.06) 54%, rgba(255, 99, 126, 0) 72%);
+    opacity: 1;
+}
+
 .vaultgame-cell.shard {
     color: #ffd36b;
     text-shadow: 0 0 16px rgba(255, 211, 107, 0.48);
 }
 
+.vaultgame-cell.shard::before {
+    inset: 16%;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, rgba(255, 211, 107, 0.3), rgba(255, 211, 107, 0.04) 56%, rgba(255, 211, 107, 0) 74%);
+    opacity: 1;
+}
+
 .vaultgame-cell.exit {
     color: #d9e6ff;
     text-shadow: 0 0 16px rgba(217, 230, 255, 0.34);
+}
+
+.vaultgame-cell.exit::before {
+    inset: 10%;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle, rgba(133, 210, 255, 0.16), rgba(133, 210, 255, 0.02) 60%, rgba(133, 210, 255, 0) 76%);
+    opacity: 1;
 }
 
 .vault-character,

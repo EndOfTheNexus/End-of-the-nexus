@@ -2510,7 +2510,7 @@ function moveVaultMissionPlayer(rowDelta, colDelta) {
     mission.player.col = Math.max(0, Math.min(mission.size - 1, mission.player.col + colDelta));
     mission.moves += 1;
     mission.shards = mission.shards.filter((shard) => !positionsMatch(shard, mission.player));
-    mission.collected = 3 - mission.shards.length;
+    mission.collected = 4 - mission.shards.length;
 
     mission.sentries = mission.sentries.map((sentry, index) => {
         const next = { ...sentry };
