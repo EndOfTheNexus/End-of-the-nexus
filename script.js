@@ -511,7 +511,7 @@ const VIEW_COUNTER_KEY = "website-views";
 const VIEW_COUNTER_SESSION_KEY = "end-of-the-nexus-view-counted";
 const VIEW_COUNTER_FALLBACK_KEY = "end-of-the-nexus-local-views";
 const VIEW_COUNTER_FLOOR = 2230;
-const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v3";
+const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v4";
 const LOOKS = {
     skin: {
         warm: "#f2c5a1",
@@ -2415,7 +2415,7 @@ function getVaultCharacterMarkup(kind, look = "") {
                 <span class="vault-arm right"></span>
                 <span class="vault-leg left"></span>
                 <span class="vault-leg right"></span>
-                <span class="vault-weapon rifle"></span>
+                <span class="vault-weapon sword"></span>
             </div>
         `;
     }
@@ -2428,7 +2428,7 @@ function getVaultCharacterMarkup(kind, look = "") {
                 <span class="vault-arm right"></span>
                 <span class="vault-leg left"></span>
                 <span class="vault-leg right"></span>
-                <span class="vault-weapon blaster"></span>
+                <span class="vault-weapon blade"></span>
             </div>
         `;
     }
@@ -4929,7 +4929,7 @@ async function registerAppShell() {
 
     await resetOldAppCachesOnce();
 
-    navigator.serviceWorker.register("./sw.js").then(() => {
+    navigator.serviceWorker.register("./sw.js?v=14").then(() => {
         appInstall.serviceWorkerReady = true;
         updateInstallUi();
     }).catch(() => {
