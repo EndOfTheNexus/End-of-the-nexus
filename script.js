@@ -288,6 +288,14 @@ const arcadeHub = {
         selectedId: ""
     },
     vaultGame: null,
+    vaultControls: {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+    },
+    vaultFrame: 0,
+    vaultLastTime: 0,
     music: {
         context: null,
         gain: null,
@@ -1294,31 +1302,49 @@ function hashVaultString(text) {
 }
 
 function createVaultMission(entry) {
-    const size = 6;
     const seed = hashVaultString(entry.id);
     const rivalNames = ["Nyx Voss", "Rex Kade", "Iris Black", "Mako Drift", "Juno Vale", "Vega Thorn", "Kael Drax", "Sable Venn"];
     const playerLooks = ["cyan", "gold", "steel"];
     const rivalLooks = ["crimson", "violet", "steel"];
-    const used = new Set(["5:2"]);
-    const reserveSpot = () => {
-        let cursor = used.size;
-        while (cursor < 64) {
-            const value = (seed + cursor * 17 + cursor * cursor) % (size * size);
-            const row = Math.floor(value / size);
-            const col = value % size;
-            const key = `${row}:${col}`;
-            cursor += 1;
-            if (!used.has(key)) {
-                used.add(key);
-                return { row, col };
-            }
-        }
-        return { row: 0, col: 0 };
-    };
-    const exit = reserveSpot();
-    const shards = [reserveSpot(), reserveSpot(), reserveSpot()];
-    const sentries = [reserveSpot(), reserveSpot()];
     const rivalName = rivalNames[seed % rivalNames.length];
+    const arenas = [
+        {
+            id: "mourning-marsh",
+            name: "Mourning Marsh",
+            story: "The first road drops into a black swamp where bone hounds hunt by sound.",
+            x: 80,
+            y: 120,
+            w: 220,
+            h: 170,
+            creature: "Bone Hound",
+            count: 3,
+            color: "cyan"
+        },
+        {
+            id: "iron-circle",
+            name: "Iron Circle",
+            story: "A ruined arena wakes under red floodlights and the blade giants step out.",
+            x: 365,
+            y: 320,
+            w: 250,
+            h: 180,
+            creature: "Blade Giant",
+            count: 4,
+            color: "redline"
+        },
+        {
+            id: "eclipse-yard",
+            name: "Eclipse Yard",
+            story: "The air goes quiet near the fortress yard where night wraiths circle the gate.",
+            x: 700,
+            y: 120,
+            w: 220,
+            h: 170,
+            creature: "Night Wraith",
+            count: 5,
+            color: "void"
+        }
+    ];
     return {
         entryId: entry.id,
         title: entry.title,
@@ -1330,16 +1356,193 @@ function createVaultMission(entry) {
         rivalName,
         playerLook: playerLooks[seed % playerLooks.length],
         rivalLook: rivalLooks[(seed + 2) % rivalLooks.length],
-        size,
-        player: { row: 5, col: 2 },
-        exit,
-        shards: [reserveSpot(), ...shards],
-        sentries: [reserveSpot(), ...sentries],
+        mapWidth: 1000,
+        mapHeight: 620,
+        player: { x: 96, y: 528, hp: 120, maxHp: 120, speed: 240, facing: 1, attackCooldown: 0, hitCooldown: 0, slashTimer: 0 },
+        arenas,
+        finalArena: {
+            name: "Thorn Crown Arena",
+            story: `${rivalName} waits inside the crown arena with the gate burning behind them.`,
+            x: 760,
+            y: 400,
+            w: 180,
+            h: 140
+        },
+        creatures: [],
+        activeArenaId: "",
         collected: 0,
         won: false,
         lost: false,
-        moves: 0
+        moves: 0,
+        storyLine: "Walk the world map, enter each arena, survive the creature waves, then face your rival in the crown arena.",
+        boss: null
     };
+}
+
+function resetVaultControls() {
+    arcadeHub.vaultControls.up = false;
+    arcadeHub.vaultControls.down = false;
+    arcadeHub.vaultControls.left = false;
+    arcadeHub.vaultControls.right = false;
+}
+
+function getVaultNextArena(mission) {
+    return mission.arenas.find((arena) => !arena.cleared) || null;
+}
+
+function pointInsideArena(point, arena) {
+    return point.x >= arena.x && point.x <= arena.x + arena.w && point.y >= arena.y && point.y <= arena.y + arena.h;
+}
+
+function createVaultCreature(arena, index, seed, isBoss = false, rivalName = "") {
+    const x = arena.x + 42 + ((seed + index * 71) % Math.max(60, arena.w - 84));
+    const y = arena.y + 34 + ((seed + index * 47) % Math.max(60, arena.h - 68));
+    return {
+        id: `${arena.id}-${index}-${isBoss ? "boss" : "mob"}`,
+        type: isBoss ? rivalName : arena.creature,
+        x,
+        y,
+        hp: isBoss ? 150 : 36 + index * 6,
+        maxHp: isBoss ? 150 : 36 + index * 6,
+        speed: isBoss ? 118 : 72 + index * 6,
+        damage: isBoss ? 16 : 8 + index * 2,
+        isBoss,
+        look: isBoss ? "boss" : arena.color
+    };
+}
+
+function startVaultArenaBattle(mission, arena, finalBattle = false) {
+    mission.activeArenaId = arena.name;
+    mission.storyLine = finalBattle
+        ? `${mission.rivalName} steps into the crown arena. Win the duel and break the vault.`
+        : `${arena.story} Clear every ${arena.creature} in ${arena.name}.`;
+    if (finalBattle) {
+        mission.boss = createVaultCreature({ ...arena, id: "boss-arena" }, 0, hashVaultString(mission.entryId), true, mission.rivalName);
+        mission.creatures = [mission.boss];
+        return;
+    }
+    const seed = hashVaultString(`${mission.entryId}-${arena.id}`);
+    mission.creatures = Array.from({ length: arena.count }, (_, index) => createVaultCreature(arena, index, seed));
+    arena.started = true;
+}
+
+function triggerVaultMissionAttack() {
+    const mission = arcadeHub.vaultGame;
+    if (!mission || arcadeHub.active !== "vaultgame" || mission.lost || mission.won) {
+        return;
+    }
+    if (mission.player.attackCooldown > 0) {
+        return;
+    }
+    mission.player.attackCooldown = 0.34;
+    mission.player.slashTimer = 0.18;
+    const attackReach = 94;
+    mission.creatures = mission.creatures.filter((creature) => {
+        const dx = creature.x - mission.player.x;
+        const dy = creature.y - mission.player.y;
+        const distance = Math.hypot(dx, dy);
+        const inFront = mission.player.facing > 0 ? dx >= -18 : dx <= 18;
+        if (distance <= attackReach && inFront) {
+            creature.hp -= creature.isBoss ? 24 : 22;
+        }
+        return creature.hp > 0;
+    });
+}
+
+function updateVaultMission(deltaMs) {
+    const mission = arcadeHub.vaultGame;
+    if (!mission || arcadeHub.active !== "vaultgame" || mission.lost || mission.won) {
+        return;
+    }
+    const delta = deltaMs / 1000;
+    const controls = arcadeHub.vaultControls;
+    let moveX = 0;
+    let moveY = 0;
+    if (controls.left) {
+        moveX -= 1;
+        mission.player.facing = -1;
+    }
+    if (controls.right) {
+        moveX += 1;
+        mission.player.facing = 1;
+    }
+    if (controls.up) {
+        moveY -= 1;
+    }
+    if (controls.down) {
+        moveY += 1;
+    }
+    if (moveX || moveY) {
+        const length = Math.hypot(moveX, moveY) || 1;
+        mission.player.x = Math.max(42, Math.min(mission.mapWidth - 42, mission.player.x + (moveX / length) * mission.player.speed * delta));
+        mission.player.y = Math.max(42, Math.min(mission.mapHeight - 42, mission.player.y + (moveY / length) * mission.player.speed * delta));
+    }
+    mission.player.attackCooldown = Math.max(0, mission.player.attackCooldown - delta);
+    mission.player.hitCooldown = Math.max(0, mission.player.hitCooldown - delta);
+    mission.player.slashTimer = Math.max(0, mission.player.slashTimer - delta);
+
+    const nextArena = getVaultNextArena(mission);
+    if (!mission.creatures.length && nextArena && !nextArena.started && pointInsideArena(mission.player, nextArena)) {
+        startVaultArenaBattle(mission, nextArena);
+    }
+    if (!mission.creatures.length && !nextArena && !mission.boss && pointInsideArena(mission.player, mission.finalArena)) {
+        startVaultArenaBattle(mission, mission.finalArena, true);
+    }
+
+    mission.creatures.forEach((creature) => {
+        const dx = mission.player.x - creature.x;
+        const dy = mission.player.y - creature.y;
+        const distance = Math.hypot(dx, dy) || 1;
+        creature.x += (dx / distance) * creature.speed * delta;
+        creature.y += (dy / distance) * creature.speed * delta;
+        if (distance < 36 && mission.player.hitCooldown <= 0) {
+            mission.player.hp = Math.max(0, mission.player.hp - creature.damage);
+            mission.player.hitCooldown = 0.65;
+            if (mission.player.hp <= 0) {
+                mission.lost = true;
+            }
+        }
+    });
+
+    if (!mission.creatures.length && nextArena && nextArena.started && !nextArena.cleared) {
+        nextArena.cleared = true;
+        mission.collected += 1;
+        mission.storyLine = `${nextArena.name} is clear. Push deeper toward ${mission.rivalName} and the crown arena.`;
+    }
+    if (!mission.creatures.length && mission.boss && !mission.won) {
+        mission.won = true;
+        mission.storyLine = `The crown arena falls silent. ${mission.rivalName} is down and the vault world is yours.`;
+    }
+}
+
+function vaultMissionLoop(timestamp) {
+    if (arcadeHub.active !== "vaultgame") {
+        arcadeHub.vaultFrame = 0;
+        return;
+    }
+    const previous = arcadeHub.vaultLastTime || timestamp;
+    const deltaMs = Math.min(32, timestamp - previous || 16.67);
+    arcadeHub.vaultLastTime = timestamp;
+    updateVaultMission(deltaMs);
+    renderVaultMission();
+    arcadeHub.vaultFrame = window.requestAnimationFrame(vaultMissionLoop);
+}
+
+function startVaultMissionLoop() {
+    if (arcadeHub.vaultFrame) {
+        return;
+    }
+    arcadeHub.vaultLastTime = 0;
+    arcadeHub.vaultFrame = window.requestAnimationFrame(vaultMissionLoop);
+}
+
+function stopVaultMissionLoop() {
+    if (arcadeHub.vaultFrame) {
+        window.cancelAnimationFrame(arcadeHub.vaultFrame);
+        arcadeHub.vaultFrame = 0;
+    }
+    arcadeHub.vaultLastTime = 0;
+    resetVaultControls();
 }
 
 function setArcadeStatus(message) {
@@ -1417,7 +1620,8 @@ function renderArcadePanel() {
         setArcadeStatus("15+ Vault is open. Browse the older-audience lineup.");
         renderMatureVault();
     } else if (active === "vaultgame") {
-        setArcadeStatus("Vault mission is open. Collect the shards and reach the exit.");
+        setArcadeStatus("Vault world is open. Clear the arenas and defeat your rival.");
+        startVaultMissionLoop();
         renderVaultMission();
     } else if (active === "music") {
         setArcadeStatus("Music player is open. Pick a track.");
@@ -1431,6 +1635,9 @@ function openArcadeSection(section) {
     }
     if (arcadeHub.active === "formula" && section !== "formula") {
         stopFormulaRace();
+    }
+    if (arcadeHub.active === "vaultgame" && section !== "vaultgame") {
+        stopVaultMissionLoop();
     }
     requestFullscreenPlay();
     arcadeHub.active = section;
@@ -1495,21 +1702,44 @@ function handleArcadeHotkey(event) {
             return true;
         }
     }
-    if (arcadeHub.active === "vaultgame" && event.type === "keydown") {
-        const moves = {
-            ArrowUp: { row: -1, col: 0 },
-            KeyW: { row: -1, col: 0 },
-            ArrowDown: { row: 1, col: 0 },
-            KeyS: { row: 1, col: 0 },
-            ArrowLeft: { row: 0, col: -1 },
-            KeyA: { row: 0, col: -1 },
-            ArrowRight: { row: 0, col: 1 },
-            KeyD: { row: 0, col: 1 }
-        };
-        const move = moves[event.code];
-        if (move) {
+    if (arcadeHub.active === "vaultgame") {
+        const pressed = event.type === "keydown";
+        if (event.code === "ArrowUp" || event.code === "KeyW") {
             event.preventDefault();
-            moveVaultMissionPlayer(move.row, move.col);
+            arcadeHub.vaultControls.up = pressed;
+            return true;
+        }
+        if (event.code === "ArrowDown" || event.code === "KeyS") {
+            event.preventDefault();
+            arcadeHub.vaultControls.down = pressed;
+            return true;
+        }
+        if (event.code === "ArrowLeft" || event.code === "KeyA") {
+            event.preventDefault();
+            arcadeHub.vaultControls.left = pressed;
+            return true;
+        }
+        if (event.code === "ArrowRight" || event.code === "KeyD") {
+            event.preventDefault();
+            arcadeHub.vaultControls.right = pressed;
+            return true;
+        }
+        if (pressed && (event.code === "Space" || event.code === "Enter")) {
+            event.preventDefault();
+            triggerVaultMissionAttack();
+            return true;
+        }
+        if (pressed && event.code === "ShiftLeft") {
+            event.preventDefault();
+            const mission = arcadeHub.vaultGame;
+            if (mission) {
+                mission.player.speed = 340;
+                window.setTimeout(() => {
+                    if (arcadeHub.vaultGame) {
+                        arcadeHub.vaultGame.player.speed = 240;
+                    }
+                }, 300);
+            }
             return true;
         }
     }
@@ -2414,10 +2644,6 @@ function launchVaultEntry(id = arcadeHub.vault.selectedId) {
     openArcadeSection("vaultgame");
 }
 
-function positionsMatch(a, b) {
-    return a.row === b.row && a.col === b.col;
-}
-
 function getVaultCharacterMarkup(kind, look = "") {
     const lookClass = look ? ` ${look}` : "";
     if (kind === "player") {
@@ -2461,76 +2687,47 @@ function renderVaultMission() {
         return;
     }
     ui.arcadeVaultGameTitle.textContent = mission.title;
-    ui.arcadeVaultGameScore.textContent = `Intel ${mission.collected}/4`;
-    ui.arcadeVaultGameGenre.textContent = mission.genre;
+    ui.arcadeVaultGameScore.textContent = `Arenas ${mission.collected}/3 | HP ${mission.player.hp}/${mission.player.maxHp}`;
+    ui.arcadeVaultGameGenre.textContent = `${mission.genre} | Story World`;
     ui.arcadeVaultGameTone.textContent = `${mission.tone} | ${mission.threat || "Threat Crimson"}`;
     ui.arcadeVaultGameRival.textContent = `Rival ${mission.rivalName}`;
     if (mission.won) {
-        ui.arcadeVaultGameStatus.textContent = `Mission clear. You secured the intel, beat ${mission.rivalName}, and reached extraction.`;
+        ui.arcadeVaultGameStatus.textContent = `World clear. You broke the arenas, defeated ${mission.rivalName}, and survived the vault.`;
     } else if (mission.lost) {
-        ui.arcadeVaultGameStatus.textContent = `${mission.rivalName} closed the gap and burned the mission. Reset and try again.`;
+        ui.arcadeVaultGameStatus.textContent = `${mission.rivalName} and the creatures overwhelmed you. Reset and fight through the vault again.`;
     } else {
-        ui.arcadeVaultGameStatus.textContent = `${mission.objective || "Secure the intel and survive the rival pursuit."} Use arrows or WASD. Secure all 4 intel shards, outrun ${mission.rivalName}, then reach extraction.`;
+        ui.arcadeVaultGameStatus.textContent = `${mission.storyLine} Move with arrows or WASD. Attack with Space or Enter.`;
     }
-    ui.arcadeVaultGameBoard.className = `board-grid vaultgame-board vault-scene-${mission.cover}`;
-
-    const cells = [];
-    for (let row = 0; row < mission.size; row += 1) {
-        for (let col = 0; col < mission.size; col += 1) {
-            const classNames = ["board-cell", "vaultgame-cell"];
-            let markup = "";
-            if (positionsMatch(mission.exit, { row, col })) {
-                classNames.push("exit");
-                markup = getVaultCharacterMarkup("exit");
-            }
-            if (mission.shards.some((shard) => positionsMatch(shard, { row, col }))) {
-                classNames.push("shard");
-                markup = getVaultCharacterMarkup("shard");
-            }
-            if (mission.sentries.some((sentry) => positionsMatch(sentry, { row, col }))) {
-                classNames.push("sentry");
-                markup = getVaultCharacterMarkup("rival", mission.rivalLook);
-            }
-            if (positionsMatch(mission.player, { row, col })) {
-                classNames.push("player");
-                markup = getVaultCharacterMarkup("player", mission.playerLook);
-            }
-            cells.push(`<div class="${classNames.join(" ")}">${markup}</div>`);
-        }
-    }
-    ui.arcadeVaultGameBoard.innerHTML = cells.join("");
-}
-
-function moveVaultMissionPlayer(rowDelta, colDelta) {
-    const mission = arcadeHub.vaultGame;
-    if (!mission || arcadeHub.active !== "vaultgame" || mission.won || mission.lost) {
-        return;
-    }
-    mission.player.row = Math.max(0, Math.min(mission.size - 1, mission.player.row + rowDelta));
-    mission.player.col = Math.max(0, Math.min(mission.size - 1, mission.player.col + colDelta));
-    mission.moves += 1;
-    mission.shards = mission.shards.filter((shard) => !positionsMatch(shard, mission.player));
-    mission.collected = 4 - mission.shards.length;
-
-    mission.sentries = mission.sentries.map((sentry, index) => {
-        const next = { ...sentry };
-        const chaseRowFirst = (mission.moves + index) % 2 === 0;
-        if (chaseRowFirst && mission.player.row !== next.row) {
-            next.row += mission.player.row > next.row ? 1 : -1;
-        } else if (mission.player.col !== next.col) {
-            next.col += mission.player.col > next.col ? 1 : -1;
-        } else if (mission.player.row !== next.row) {
-            next.row += mission.player.row > next.row ? 1 : -1;
-        }
-        return next;
-    });
-
-    if (mission.sentries.some((sentry) => positionsMatch(sentry, mission.player))) {
-        mission.lost = true;
-    } else if (!mission.shards.length && positionsMatch(mission.exit, mission.player)) {
-        mission.won = true;
-    }
-    renderVaultMission();
+    ui.arcadeVaultGameBoard.className = `vaultgame-board vault-world vault-scene-${mission.cover}`;
+    const arenaMarkup = mission.arenas.map((arena) => `
+        <div class="vault-world-arena ${arena.color}${arena.cleared ? " cleared" : ""}${arena.started && !arena.cleared ? " active" : ""}"
+            style="left:${(arena.x / mission.mapWidth) * 100}%;top:${(arena.y / mission.mapHeight) * 100}%;width:${(arena.w / mission.mapWidth) * 100}%;height:${(arena.h / mission.mapHeight) * 100}%;">
+            <span>${arena.name}</span>
+        </div>
+    `).join("");
+    const creatureMarkup = mission.creatures.map((creature) => `
+        <div class="vault-world-creature ${creature.isBoss ? "boss" : creature.look}"
+            style="left:${(creature.x / mission.mapWidth) * 100}%;top:${(creature.y / mission.mapHeight) * 100}%;">
+            <span class="vault-creature-core"></span>
+            <span class="vault-creature-eyes"></span>
+            <span class="vault-creature-name">${creature.type}</span>
+        </div>
+    `).join("");
+    const slashMarkup = mission.player.slashTimer > 0 ? `<div class="vault-world-slash ${mission.player.facing > 0 ? "right" : "left"}" style="left:${(mission.player.x / mission.mapWidth) * 100}%;top:${(mission.player.y / mission.mapHeight) * 100}%"></div>` : "";
+    ui.arcadeVaultGameBoard.innerHTML = `
+        <div class="vault-world-path"></div>
+        ${arenaMarkup}
+        <div class="vault-world-arena final ${mission.boss && !mission.won ? "active" : ""}${mission.won ? " cleared" : ""}"
+            style="left:${(mission.finalArena.x / mission.mapWidth) * 100}%;top:${(mission.finalArena.y / mission.mapHeight) * 100}%;width:${(mission.finalArena.w / mission.mapWidth) * 100}%;height:${(mission.finalArena.h / mission.mapHeight) * 100}%;">
+            <span>${mission.finalArena.name}</span>
+        </div>
+        <div class="vault-world-player ${mission.playerLook}" style="left:${(mission.player.x / mission.mapWidth) * 100}%;top:${(mission.player.y / mission.mapHeight) * 100}%;">
+            <span class="vault-world-player-body"></span>
+            <span class="vault-world-player-sword ${mission.player.facing > 0 ? "right" : "left"}"></span>
+        </div>
+        ${slashMarkup}
+        ${creatureMarkup}
+    `;
 }
 
 function resetVaultMission() {
@@ -11544,6 +11741,7 @@ if (ui.homeInstallButton) {
 }
 if (ui.homeMenuButton) {
     ui.homeMenuButton.addEventListener("click", () => safelyRun("Open Menu Hub", () => {
+        stopVaultMissionLoop();
         arcadeHub.active = "launcher";
         showHomePanel("arcade");
     }));
@@ -11648,6 +11846,7 @@ if (ui.menuEndOfTheNexusButton) {
     ui.menuEndOfTheNexusButton.addEventListener("click", () => safelyRun("Open End of the Nexus", () => {
         stopDodgeArena();
         stopFormulaRace();
+        stopVaultMissionLoop();
         showHomePanel("main");
     }));
 }
