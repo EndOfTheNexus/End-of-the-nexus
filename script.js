@@ -1220,16 +1220,24 @@ function createInitialFormulaState() {
 }
 
 function createMatureVaultEntries() {
-    const worlds = ["Neon", "Iron", "Glass", "Shadow", "Chrome", "Ash", "Zero", "Midnight", "Static", "Blackout"];
-    const hooks = ["Run", "Protocol", "District", "Break", "Strike", "Drift", "Line", "Signal", "Fall", "Reckoning"];
-    const genres = ["Tactical Shooter", "Street Racing", "Sci-Fi Horror", "Stealth Action", "Survival Thriller"];
-    const tones = ["Hard sci-fi", "Grounded urban", "Gritty survival", "Black-ops suspense", "Dystopian noir"];
+    const worlds = ["Nightfall", "Iron", "Cinder", "Ghost", "Chrome", "Ash", "Zero", "Midnight", "Static", "Blackout"];
+    const hooks = ["Protocol", "District", "Lockdown", "Siege", "Breakpoint", "Pursuit", "Signal", "Crossfire", "Fall", "Reckoning"];
+    const genres = ["Tactical Infiltration", "Street Racing", "Sci-Fi Horror", "Stealth Action", "Survival Thriller", "Rival Arena"];
+    const tones = ["Hard sci-fi", "Grounded urban", "Gritty survival", "Black-ops suspense", "Dystopian noir", "After-hours tension"];
+    const objectives = [
+        "Cut the power, secure the intel, and get out before the rival squad seals the exits.",
+        "Push through a hostile district, beat the lead rival crew, and hold the extraction point.",
+        "Race the clock through a shutdown zone where every wrong turn gives the hunters ground.",
+        "Stay off the cameras, steal the core file, and survive the chase that follows.",
+        "Survive the collapse, recover the last signal shard, and force your way back out."
+    ];
+    const threatLevels = ["Threat Amber", "Threat Crimson", "Threat Black", "Threat Neon", "Threat Gold"];
     const pitches = [
-        "Push through high-pressure missions, smarter enemies, and heavier stakes.",
-        "Race, fight, or survive your way through a city that never really sleeps.",
-        "A tougher campaign with sharper consequences and older-teen energy.",
-        "Built around pressure, speed, and split-second choices under bright neon skies.",
-        "A more grounded, older-feeling game pitch with danger, grit, and momentum."
+        "Push through pressure-heavy missions, smarter rivals, and sharper consequences.",
+        "Race, fight, or survive through districts that feel dangerous after dark.",
+        "A tougher campaign built around rival crews, harder escapes, and older-teen energy.",
+        "Every run leans on pressure, speed, and split-second choices with real momentum.",
+        "A darker, more grounded pitch focused on infiltration, survival, and payback."
     ];
     const covers = ["neon", "redline", "steel", "void", "gold", "cyan"];
     const entries = [];
@@ -1243,22 +1251,24 @@ function createMatureVaultEntries() {
                 genre: genres[mix % genres.length],
                 tone: tones[(worldIndex * 2 + hookIndex) % tones.length],
                 pitch: pitches[(worldIndex + hookIndex * 2) % pitches.length],
+                objective: objectives[(worldIndex + hookIndex) % objectives.length],
+                threat: threatLevels[(worldIndex * 3 + hookIndex) % threatLevels.length],
                 cover: covers[(worldIndex * 3 + hookIndex) % covers.length]
             });
         }
     }
     const bonusEntries = [
-        { title: "Aftershock Circuit", genre: "Street Racing", tone: "Hard sci-fi", pitch: "High-speed circuit duels with meaner rivals and tighter corners.", cover: "redline" },
-        { title: "Terminal Breach", genre: "Tactical Shooter", tone: "Black-ops suspense", pitch: "Break into a locked station and survive the counterattack.", cover: "steel" },
-        { title: "Ghost Sector", genre: "Sci-Fi Horror", tone: "Dystopian noir", pitch: "Push through a dark sector where every hallway feels wrong.", cover: "void" },
-        { title: "Night Market Run", genre: "Stealth Action", tone: "Grounded urban", pitch: "Slip through a packed district while rival crews close in.", cover: "neon" },
-        { title: "Steel Horizon", genre: "Survival Thriller", tone: "Gritty survival", pitch: "Hold the line as supplies drop and the arena gets meaner.", cover: "steel" },
-        { title: "Black Sun Raid", genre: "Tactical Shooter", tone: "Hard sci-fi", pitch: "A hotter, louder raid built around pressure and fast decisions.", cover: "gold" },
-        { title: "Pulse Highway", genre: "Street Racing", tone: "Grounded urban", pitch: "Sprint through a glowing freeway while rivals crowd every lane.", cover: "cyan" },
-        { title: "Rogue Archive", genre: "Stealth Action", tone: "Black-ops suspense", pitch: "Sneak deeper into a sealed archive before the hunters triangulate you.", cover: "void" },
-        { title: "Dead Signal", genre: "Sci-Fi Horror", tone: "Dystopian noir", pitch: "Follow a corrupted distress call into a zone nobody comes back from.", cover: "redline" },
-        { title: "Cinder Lock", genre: "Survival Thriller", tone: "Gritty survival", pitch: "Outlast a collapsing stronghold with almost no room for mistakes.", cover: "gold" },
-        { title: "Vanta Rush", genre: "Street Racing", tone: "Hard sci-fi", pitch: "A brutal midnight race with boost gates, rivals, and zero mercy.", cover: "neon" }
+        { title: "Aftershock Circuit", genre: "Street Racing", tone: "Hard sci-fi", pitch: "High-speed circuit duels with meaner rivals and tighter corners.", objective: "Break the leader pack, hold first through the blackout lap, and survive the last collision run.", threat: "Threat Crimson", cover: "redline" },
+        { title: "Terminal Breach", genre: "Tactical Infiltration", tone: "Black-ops suspense", pitch: "Break into a locked station and survive the counterattack.", objective: "Cut through the breach wing, steal the terminal core, and reach the lift before lockdown.", threat: "Threat Black", cover: "steel" },
+        { title: "Ghost Sector", genre: "Sci-Fi Horror", tone: "Dystopian noir", pitch: "Push through a dark sector where every hallway feels wrong.", objective: "Track the missing signal, avoid corrupted patrols, and exfil before the sector seals.", threat: "Threat Black", cover: "void" },
+        { title: "Night Market Run", genre: "Stealth Action", tone: "Grounded urban", pitch: "Slip through a packed district while rival crews close in.", objective: "Move through the market lanes, keep the package, and beat the crew waiting at extraction.", threat: "Threat Neon", cover: "neon" },
+        { title: "Steel Horizon", genre: "Survival Thriller", tone: "Gritty survival", pitch: "Hold the line as supplies drop and the arena gets meaner.", objective: "Survive the final wave, secure the supply crate, and stop the last challenger from cornering you.", threat: "Threat Gold", cover: "steel" },
+        { title: "Black Sun Raid", genre: "Tactical Infiltration", tone: "Hard sci-fi", pitch: "A hotter, louder raid built around pressure and fast decisions.", objective: "Reach the reactor deck, destroy the relay, and fight out before the blast doors lock.", threat: "Threat Black", cover: "gold" },
+        { title: "Pulse Highway", genre: "Street Racing", tone: "Grounded urban", pitch: "Sprint through a glowing freeway while rivals crowd every lane.", objective: "Hold your line through the midnight stretch and take the last overtake before the tunnel split.", threat: "Threat Crimson", cover: "cyan" },
+        { title: "Rogue Archive", genre: "Stealth Action", tone: "Black-ops suspense", pitch: "Sneak deeper into a sealed archive before the hunters triangulate you.", objective: "Grab the archive key, stay off the sweep route, and vanish before the tracker locks on.", threat: "Threat Amber", cover: "void" },
+        { title: "Dead Signal", genre: "Sci-Fi Horror", tone: "Dystopian noir", pitch: "Follow a corrupted distress call into a zone nobody comes back from.", objective: "Trace the dead signal, avoid the echo patrols, and make it out with proof.", threat: "Threat Black", cover: "redline" },
+        { title: "Cinder Lock", genre: "Survival Thriller", tone: "Gritty survival", pitch: "Outlast a collapsing stronghold with almost no room for mistakes.", objective: "Hold the collapsing lock, recover the core shard, and beat the final collapse window.", threat: "Threat Gold", cover: "gold" },
+        { title: "Vanta Rush", genre: "Street Racing", tone: "Hard sci-fi", pitch: "A brutal midnight race with boost gates, rivals, and zero mercy.", objective: "Stay in the slipstream, survive the hard turns, and win the last sprint under blackout lights.", threat: "Threat Neon", cover: "neon" }
     ];
     bonusEntries.forEach((entry, index) => {
         entries.push({
@@ -1267,6 +1277,8 @@ function createMatureVaultEntries() {
             genre: entry.genre,
             tone: entry.tone,
             pitch: entry.pitch,
+            objective: entry.objective,
+            threat: entry.threat,
             cover: entry.cover
         });
     });
@@ -1282,15 +1294,15 @@ function hashVaultString(text) {
 }
 
 function createVaultMission(entry) {
-    const size = 5;
+    const size = 6;
     const seed = hashVaultString(entry.id);
-    const rivalNames = ["Nyx Voss", "Rex Kade", "Iris Black", "Mako Drift", "Juno Vale", "Vega Thorn"];
+    const rivalNames = ["Nyx Voss", "Rex Kade", "Iris Black", "Mako Drift", "Juno Vale", "Vega Thorn", "Kael Drax", "Sable Venn"];
     const playerLooks = ["cyan", "gold", "steel"];
     const rivalLooks = ["crimson", "violet", "steel"];
-    const used = new Set(["4:2"]);
+    const used = new Set(["5:2"]);
     const reserveSpot = () => {
         let cursor = used.size;
-        while (cursor < 40) {
+        while (cursor < 64) {
             const value = (seed + cursor * 17 + cursor * cursor) % (size * size);
             const row = Math.floor(value / size);
             const col = value % size;
@@ -1312,15 +1324,17 @@ function createVaultMission(entry) {
         title: entry.title,
         genre: entry.genre,
         tone: entry.tone,
+        threat: entry.threat || "Threat Crimson",
+        objective: entry.objective || "Secure the intel and survive the rival pursuit.",
         cover: entry.cover,
         rivalName,
         playerLook: playerLooks[seed % playerLooks.length],
         rivalLook: rivalLooks[(seed + 2) % rivalLooks.length],
         size,
-        player: { row: 4, col: 2 },
+        player: { row: 5, col: 2 },
         exit,
-        shards,
-        sentries,
+        shards: [reserveSpot(), ...shards],
+        sentries: [reserveSpot(), ...sentries],
         collected: 0,
         won: false,
         lost: false,
@@ -2447,16 +2461,16 @@ function renderVaultMission() {
         return;
     }
     ui.arcadeVaultGameTitle.textContent = mission.title;
-    ui.arcadeVaultGameScore.textContent = `Shards ${mission.collected}/3`;
+    ui.arcadeVaultGameScore.textContent = `Intel ${mission.collected}/4`;
     ui.arcadeVaultGameGenre.textContent = mission.genre;
-    ui.arcadeVaultGameTone.textContent = mission.tone;
+    ui.arcadeVaultGameTone.textContent = `${mission.tone} | ${mission.threat || "Threat Crimson"}`;
     ui.arcadeVaultGameRival.textContent = `Rival ${mission.rivalName}`;
     if (mission.won) {
-        ui.arcadeVaultGameStatus.textContent = "Mission clear. You grabbed every shard and escaped.";
+        ui.arcadeVaultGameStatus.textContent = `Mission clear. You secured the intel, beat ${mission.rivalName}, and reached extraction.`;
     } else if (mission.lost) {
-        ui.arcadeVaultGameStatus.textContent = `${mission.rivalName} caught you. Reset and try again.`;
+        ui.arcadeVaultGameStatus.textContent = `${mission.rivalName} closed the gap and burned the mission. Reset and try again.`;
     } else {
-        ui.arcadeVaultGameStatus.textContent = `Use arrows or WASD. Grab all shards, outrun ${mission.rivalName}, then reach the exit gate.`;
+        ui.arcadeVaultGameStatus.textContent = `${mission.objective || "Secure the intel and survive the rival pursuit."} Use arrows or WASD. Secure all 4 intel shards, outrun ${mission.rivalName}, then reach extraction.`;
     }
     ui.arcadeVaultGameBoard.className = `board-grid vaultgame-board vault-scene-${mission.cover}`;
 
@@ -2539,7 +2553,7 @@ function renderMatureVault() {
     }
     const selected = entries.find((entry) => entry.id === vault.selectedId) || entries[0];
     ui.arcadeVaultCount.textContent = `${entries.length} games`;
-    ui.arcadeVaultStatus.textContent = "100 extra 15+ picks loaded into the vault. Tap a cover to inspect it, then tap again to launch.";
+    ui.arcadeVaultStatus.textContent = "111 harder-edged vault picks loaded. Check the threat, read the objective, and launch a mission when you are ready.";
     ui.arcadeVaultGrid.innerHTML = entries.map((entry) => `
         <button class="arcade-vault-card${entry.id === vault.selectedId ? " selected" : ""}" type="button" data-vault-id="${entry.id}">
             <span class="arcade-vault-card-art arcade-vault-cover-${entry.cover}"></span>
@@ -2560,8 +2574,8 @@ function renderMatureVault() {
     if (selected) {
         ui.arcadeVaultPreview.className = `arcade-vault-preview arcade-vault-cover-${selected.cover}`;
         ui.arcadeVaultPreviewTitle.textContent = selected.title;
-        ui.arcadeVaultPreviewGenre.textContent = `${selected.genre} | ${selected.tone} | Unique mission`;
-        ui.arcadeVaultPreviewCopy.textContent = `${selected.pitch} Tap Play This Game to launch its own vault mission.`;
+        ui.arcadeVaultPreviewGenre.textContent = `${selected.genre} | ${selected.tone} | ${selected.threat || "Threat Crimson"}`;
+        ui.arcadeVaultPreviewCopy.textContent = `${selected.pitch} Objective: ${selected.objective || "Secure the intel and survive the rival pursuit."} Tap Play This Game to launch its own vault mission.`;
     }
     if (ui.arcadeVaultLaunchButton) {
         ui.arcadeVaultLaunchButton.onclick = () => launchVaultEntry(selected?.id);

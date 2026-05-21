@@ -863,8 +863,8 @@ body.play-mode #home-arcade-panel .arcade-tool {
 }
 
 .vaultgame-board {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    width: min(100%, 360px);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    width: min(100%, 420px);
     border: 1px solid rgba(133, 210, 255, 0.18);
 }
 
@@ -1146,37 +1146,47 @@ body.play-mode #home-arcade-panel .arcade-tool {
 
 .vault-weapon {
     position: absolute;
-    top: 34%;
-    right: 4%;
-    height: 10%;
+    top: 28%;
+    right: 8%;
+    width: 10%;
     border-radius: 999px;
-    background: linear-gradient(180deg, rgba(218, 228, 240, 0.96), rgba(88, 101, 117, 0.96));
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(180deg, rgba(255, 249, 231, 0.98), rgba(255, 167, 60, 0.96) 50%, rgba(255, 72, 52, 0.94));
+    box-shadow: 0 0 10px rgba(255, 132, 65, 0.34), 0 0 18px rgba(255, 84, 50, 0.28);
 }
 
 .vault-weapon::before {
     content: "";
     position: absolute;
-    left: -18%;
-    top: 24%;
-    width: 18%;
-    height: 52%;
+    left: 16%;
+    bottom: -16%;
+    width: 68%;
+    height: 24%;
     border-radius: 4px;
-    background: rgba(43, 25, 12, 0.88);
+    background: rgba(72, 38, 16, 0.9);
 }
 
-.vault-weapon.rifle {
-    width: 30%;
-    transform: rotate(-18deg);
+.vault-weapon::after {
+    content: "";
+    position: absolute;
+    inset: -18% -18% 8% -18%;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(255, 211, 107, 0.42), rgba(255, 90, 55, 0));
+    z-index: -1;
 }
 
-.vault-weapon.blaster {
-    width: 24%;
-    transform: rotate(16deg);
+.vault-weapon.sword {
+    height: 34%;
+    transform: rotate(-28deg);
+}
+
+.vault-weapon.blade {
+    height: 30%;
+    transform: rotate(24deg);
 }
 
 .vault-character.rival .vault-weapon {
-    background: linear-gradient(180deg, rgba(255, 202, 214, 0.96), rgba(120, 54, 68, 0.96));
+    background: linear-gradient(180deg, rgba(255, 241, 222, 0.98), rgba(255, 138, 71, 0.96) 46%, rgba(214, 44, 64, 0.94));
+    box-shadow: 0 0 10px rgba(255, 123, 75, 0.34), 0 0 18px rgba(214, 44, 64, 0.28);
 }
 
 .shard-core {
