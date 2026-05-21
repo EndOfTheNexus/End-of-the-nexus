@@ -510,8 +510,8 @@ const VIEW_COUNTER_NAMESPACE = "end-of-the-nexus";
 const VIEW_COUNTER_KEY = "website-views";
 const VIEW_COUNTER_SESSION_KEY = "end-of-the-nexus-view-counted";
 const VIEW_COUNTER_FALLBACK_KEY = "end-of-the-nexus-local-views";
-const VIEW_COUNTER_FLOOR = 215;
-const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v2";
+const VIEW_COUNTER_FLOOR = 2230;
+const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v3";
 const LOOKS = {
     skin: {
         warm: "#f2c5a1",
@@ -4740,7 +4740,7 @@ async function refreshViewerCount() {
 
     if (window.location.protocol === "file:") {
         const localViews = bumpLocalFallback();
-        ui.viewerCountText.textContent = localViews.toLocaleString();
+        ui.viewerCountText.textContent = formatViewerCount(localViews);
         ui.viewerCountNote.textContent = "This is a device-only view count while you are opening the game from files on this computer.";
         return;
     }
@@ -4753,16 +4753,24 @@ async function refreshViewerCount() {
         const response = await fetch(endpoint);
         const data = await response.json();
         const value = Math.max(VIEW_COUNTER_FLOOR, Number(data && data.value) || 0);
-        ui.viewerCountText.textContent = value.toLocaleString();
+        ui.viewerCountText.textContent = formatViewerCount(value);
         ui.viewerCountNote.textContent = "This shows total website views for your live game page.";
         if (shouldCountVisit) {
             window.sessionStorage.setItem(VIEW_COUNTER_SESSION_KEY, "done");
         }
     } catch (error) {
         const localViews = bumpLocalFallback();
-        ui.viewerCountText.textContent = localViews.toLocaleString();
+        ui.viewerCountText.textContent = formatViewerCount(localViews);
         ui.viewerCountNote.textContent = "Live viewer count could not load, so this is a backup count for views on this device.";
     }
+}
+
+function formatViewerCount(value) {
+    const safeValue = Math.max(0, Number(value) || 0);
+    if (safeValue >= 1000) {
+        return `${(safeValue / 1000).toFixed(2).replace(/\.?0+$/, "")}K`;
+    }
+    return safeValue.toLocaleString();
 }
 
 function getInstallPlatformInfo() {
