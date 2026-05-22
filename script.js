@@ -1311,38 +1311,41 @@ function createVaultMission(entry) {
         {
             id: "mourning-marsh",
             name: "Mourning Marsh",
-            story: "The first road drops into a black swamp where bone hounds hunt by sound.",
+            story: "The first road drops into a black swamp where drowned raiders wait with rusted blades.",
             x: 80,
             y: 120,
             w: 220,
             h: 170,
-            creature: "Bone Hound",
+            creature: "Marsh Raider",
             count: 3,
-            color: "cyan"
+            color: "cyan",
+            objective: "Defeat the Marsh Raiders and claim the swamp key."
         },
         {
             id: "iron-circle",
             name: "Iron Circle",
-            story: "A ruined arena wakes under red floodlights and the blade giants step out.",
+            story: "A ruined arena wakes under red floodlights and the execution knights march out together.",
             x: 365,
             y: 320,
             w: 250,
             h: 180,
-            creature: "Blade Giant",
+            creature: "Execution Knight",
             count: 4,
-            color: "redline"
+            color: "redline",
+            objective: "Defeat the knights and survive the arena collapse."
         },
         {
             id: "eclipse-yard",
             name: "Eclipse Yard",
-            story: "The air goes quiet near the fortress yard where night wraiths circle the gate.",
+            story: "The air goes quiet near the fortress yard where cult swordsmen guard the final road.",
             x: 700,
             y: 120,
             w: 220,
             h: 170,
-            creature: "Night Wraith",
+            creature: "Night Cultist",
             count: 5,
-            color: "void"
+            color: "void",
+            objective: "Break the cult line and open the road to the crown arena."
         }
     ];
     return {
@@ -1375,7 +1378,8 @@ function createVaultMission(entry) {
         lost: false,
         moves: 0,
         storyLine: "Walk the world map, enter each arena, survive the creature waves, then face your rival in the crown arena.",
-        boss: null
+        boss: null,
+        objectiveLine: "Reach Mourning Marsh."
     };
 }
 
@@ -1407,7 +1411,8 @@ function createVaultCreature(arena, index, seed, isBoss = false, rivalName = "")
         speed: isBoss ? 118 : 72 + index * 6,
         damage: isBoss ? 16 : 8 + index * 2,
         isBoss,
-        look: isBoss ? "boss" : arena.color
+        look: isBoss ? "boss" : arena.color,
+        weapon: isBoss ? "rival blade" : (arena.creature === "Execution Knight" ? "great sword" : "fire sword")
     };
 }
 
@@ -1416,6 +1421,9 @@ function startVaultArenaBattle(mission, arena, finalBattle = false) {
     mission.storyLine = finalBattle
         ? `${mission.rivalName} steps into the crown arena. Win the duel and break the vault.`
         : `${arena.story} Clear every ${arena.creature} in ${arena.name}.`;
+    mission.objectiveLine = finalBattle
+        ? `Final objective: defeat ${mission.rivalName} in ${arena.name}.`
+        : `Objective: ${arena.objective}`;
     if (finalBattle) {
         mission.boss = createVaultCreature({ ...arena, id: "boss-arena" }, 0, hashVaultString(mission.entryId), true, mission.rivalName);
         mission.creatures = [mission.boss];
@@ -1508,10 +1516,14 @@ function updateVaultMission(deltaMs) {
         nextArena.cleared = true;
         mission.collected += 1;
         mission.storyLine = `${nextArena.name} is clear. Push deeper toward ${mission.rivalName} and the crown arena.`;
+        mission.objectiveLine = getVaultNextArena(mission)
+            ? `Next objective: ${getVaultNextArena(mission).objective}`
+            : `Next objective: enter ${mission.finalArena.name} and defeat ${mission.rivalName}.`;
     }
     if (!mission.creatures.length && mission.boss && !mission.won) {
         mission.won = true;
         mission.storyLine = `The crown arena falls silent. ${mission.rivalName} is down and the vault world is yours.`;
+        mission.objectiveLine = "All objectives complete.";
     }
 }
 
@@ -2696,7 +2708,7 @@ function renderVaultMission() {
     } else if (mission.lost) {
         ui.arcadeVaultGameStatus.textContent = `${mission.rivalName} and the creatures overwhelmed you. Reset and fight through the vault again.`;
     } else {
-        ui.arcadeVaultGameStatus.textContent = `${mission.storyLine} Move with arrows or WASD. Attack with Space or Enter.`;
+        ui.arcadeVaultGameStatus.textContent = `${mission.storyLine} ${mission.objectiveLine} Move with arrows or WASD. Attack with Space or Enter.`;
     }
     ui.arcadeVaultGameBoard.className = `vaultgame-board vault-world vault-scene-${mission.cover}`;
     const arenaMarkup = mission.arenas.map((arena) => `
@@ -2708,14 +2720,23 @@ function renderVaultMission() {
     const creatureMarkup = mission.creatures.map((creature) => `
         <div class="vault-world-creature ${creature.isBoss ? "boss" : creature.look}"
             style="left:${(creature.x / mission.mapWidth) * 100}%;top:${(creature.y / mission.mapHeight) * 100}%;">
-            <span class="vault-creature-core"></span>
-            <span class="vault-creature-eyes"></span>
+            <span class="vault-world-enemy-body"></span>
+            <span class="vault-world-enemy-sword"></span>
+            <span class="vault-world-enemy-hp"><span style="width:${Math.max(0, (creature.hp / creature.maxHp) * 100)}%"></span></span>
             <span class="vault-creature-name">${creature.type}</span>
         </div>
     `).join("");
+    const objectiveMarkup = `
+        <div class="vault-world-objectives">
+            <strong>Mission Objectives</strong>
+            <span>${mission.objectiveLine}</span>
+            <span>${mission.collected}/3 arenas cleared</span>
+        </div>
+    `;
     const slashMarkup = mission.player.slashTimer > 0 ? `<div class="vault-world-slash ${mission.player.facing > 0 ? "right" : "left"}" style="left:${(mission.player.x / mission.mapWidth) * 100}%;top:${(mission.player.y / mission.mapHeight) * 100}%"></div>` : "";
     ui.arcadeVaultGameBoard.innerHTML = `
         <div class="vault-world-path"></div>
+        ${objectiveMarkup}
         ${arenaMarkup}
         <div class="vault-world-arena final ${mission.boss && !mission.won ? "active" : ""}${mission.won ? " cleared" : ""}"
             style="left:${(mission.finalArena.x / mission.mapWidth) * 100}%;top:${(mission.finalArena.y / mission.mapHeight) * 100}%;width:${(mission.finalArena.w / mission.mapWidth) * 100}%;height:${(mission.finalArena.h / mission.mapHeight) * 100}%;">
