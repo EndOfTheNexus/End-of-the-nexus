@@ -519,7 +519,7 @@ const VIEW_COUNTER_KEY = "website-views";
 const VIEW_COUNTER_SESSION_KEY = "end-of-the-nexus-view-counted";
 const VIEW_COUNTER_FALLBACK_KEY = "end-of-the-nexus-local-views";
 const VIEW_COUNTER_FLOOR = 2230;
-const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v4";
+const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v5";
 const LOOKS = {
     skin: {
         warm: "#f2c5a1",
@@ -5161,7 +5161,7 @@ async function registerAppShell() {
 
     await resetOldAppCachesOnce();
 
-    navigator.serviceWorker.register("./sw.js?v=14").then(() => {
+    navigator.serviceWorker.register("./sw.js?v=15").then(() => {
         appInstall.serviceWorkerReady = true;
         updateInstallUi();
     }).catch(() => {
