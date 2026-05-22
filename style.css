@@ -2679,8 +2679,8 @@ button {
 }
 
 .vault-world-player {
-    width: 46px;
-    height: 64px;
+    width: 68px;
+    height: 108px;
     z-index: 3;
     filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.34));
 }
@@ -2688,11 +2688,35 @@ button {
 .vault-world-player-body {
     position: absolute;
     inset: 0;
-    border-radius: 16px 16px 12px 12px;
+    border-radius: 28px 28px 18px 18px;
     background:
-        radial-gradient(circle at 50% 16%, rgba(239, 248, 255, 0.96) 0 16%, transparent 17%),
-        linear-gradient(180deg, rgba(90, 255, 226, 0.96), rgba(16, 66, 74, 0.96));
-    box-shadow: 0 0 18px rgba(90, 255, 226, 0.32);
+        radial-gradient(circle at 50% 10%, rgba(239, 248, 255, 0.98) 0 11%, transparent 12%),
+        linear-gradient(180deg, transparent 0 17%, rgba(90, 255, 226, 0.98) 18%, rgba(23, 74, 84, 0.98) 56%, rgba(10, 24, 30, 0.98) 100%);
+    box-shadow: 0 0 20px rgba(90, 255, 226, 0.28);
+}
+
+.vault-world-player-body::before {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    top: 28px;
+    height: 28px;
+    border-radius: 16px 16px 10px 10px;
+    background: linear-gradient(180deg, rgba(224, 236, 248, 0.95), rgba(92, 118, 132, 0.92));
+    box-shadow: inset 0 -4px 0 rgba(9, 16, 24, 0.22);
+}
+
+.vault-world-player-body::after {
+    content: "";
+    position: absolute;
+    left: 26px;
+    right: 26px;
+    bottom: 8px;
+    height: 34px;
+    border-radius: 10px;
+    background:
+        linear-gradient(90deg, rgba(224, 232, 242, 0.92) 0 28%, transparent 28% 42%, rgba(224, 232, 242, 0.92) 42% 70%, transparent 70% 100%);
 }
 
 .vault-world-player.gold .vault-world-player-body {
@@ -2709,47 +2733,71 @@ button {
 
 .vault-world-player-sword {
     position: absolute;
-    top: 18px;
-    width: 10px;
-    height: 36px;
+    top: 34px;
+    width: 12px;
+    height: 54px;
     border-radius: 999px;
     background: linear-gradient(180deg, rgba(255, 249, 231, 0.98), rgba(255, 167, 60, 0.96) 50%, rgba(255, 72, 52, 0.94));
     box-shadow: 0 0 12px rgba(255, 132, 65, 0.38), 0 0 22px rgba(255, 84, 50, 0.3);
 }
 
 .vault-world-player-sword.right {
-    right: -6px;
-    transform: rotate(-28deg);
+    right: 0;
+    transform: rotate(-24deg);
 }
 
 .vault-world-player-sword.left {
-    left: -6px;
-    transform: rotate(28deg);
+    left: 0;
+    transform: rotate(24deg);
 }
 
 .vault-world-creature {
-    width: 54px;
-    height: 76px;
+    width: 68px;
+    height: 108px;
     z-index: 2;
 }
 
 .vault-world-enemy-body {
     position: absolute;
     inset: 0;
-    border-radius: 18px 18px 12px 12px;
+    border-radius: 28px 28px 18px 18px;
     background:
-        radial-gradient(circle at 50% 12%, rgba(235, 240, 248, 0.95) 0 12%, transparent 13%),
-        linear-gradient(180deg, rgba(72, 85, 112, 0.98), rgba(14, 18, 28, 0.98));
+        radial-gradient(circle at 50% 10%, rgba(235, 240, 248, 0.98) 0 11%, transparent 12%),
+        linear-gradient(180deg, transparent 0 17%, rgba(72, 85, 112, 0.98) 18%, rgba(28, 36, 50, 0.98) 56%, rgba(12, 15, 23, 0.98) 100%);
     box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.06), 0 10px 20px rgba(0, 0, 0, 0.32);
+}
+
+.vault-world-enemy-body::before {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    top: 28px;
+    height: 28px;
+    border-radius: 16px 16px 10px 10px;
+    background: linear-gradient(180deg, rgba(224, 236, 248, 0.92), rgba(86, 96, 120, 0.9));
+    box-shadow: inset 0 -4px 0 rgba(8, 12, 20, 0.24);
+}
+
+.vault-world-enemy-body::after {
+    content: "";
+    position: absolute;
+    left: 26px;
+    right: 26px;
+    bottom: 8px;
+    height: 34px;
+    border-radius: 10px;
+    background:
+        linear-gradient(90deg, rgba(224, 232, 242, 0.9) 0 28%, transparent 28% 42%, rgba(224, 232, 242, 0.9) 42% 70%, transparent 70% 100%);
 }
 
 .vault-world-creature::before,
 .vault-world-creature::after {
     content: "";
     position: absolute;
-    top: 24px;
+    top: 42px;
     width: 10px;
-    height: 34px;
+    height: 42px;
     border-radius: 999px;
     background: rgba(224, 232, 242, 0.92);
 }
@@ -2766,12 +2814,12 @@ button {
 
 .vault-world-enemy-sword {
     position: absolute;
-    top: 22px;
-    right: -2px;
-    width: 10px;
-    height: 38px;
+    top: 38px;
+    right: 0;
+    width: 12px;
+    height: 56px;
     border-radius: 999px;
-    transform: rotate(-28deg);
+    transform: rotate(-22deg);
     background: linear-gradient(180deg, rgba(255, 249, 231, 0.98), rgba(255, 167, 60, 0.96) 50%, rgba(255, 72, 52, 0.94));
     box-shadow: 0 0 12px rgba(255, 132, 65, 0.34), 0 0 20px rgba(255, 84, 50, 0.28);
 }
@@ -2794,8 +2842,8 @@ button {
 }
 
 .vault-world-creature.boss {
-    width: 78px;
-    height: 102px;
+    width: 88px;
+    height: 132px;
     z-index: 4;
 }
 
