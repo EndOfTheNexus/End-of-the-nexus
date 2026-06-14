@@ -1,9 +1,9 @@
-const CACHE_NAME = "end-of-the-nexus-app-v15";
+const CACHE_NAME = "end-of-the-nexus-app-v16";
 const APP_SHELL = [
     "./",
     "./index.html",
-    "./style.css?v=61",
-    "./script.js?v=69",
+    "./style.css?v=62",
+    "./script.js?v=70",
     "./manifest.webmanifest?v=4",
     "./app-icon.svg",
     "./app-icon-maskable.svg"

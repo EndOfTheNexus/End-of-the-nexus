@@ -518,8 +518,11 @@ const VIEW_COUNTER_NAMESPACE = "end-of-the-nexus";
 const VIEW_COUNTER_KEY = "website-views";
 const VIEW_COUNTER_SESSION_KEY = "end-of-the-nexus-view-counted";
 const VIEW_COUNTER_FALLBACK_KEY = "end-of-the-nexus-local-views";
-const VIEW_COUNTER_FLOOR = 2230;
-const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v5";
+const VIEW_COUNTER_BASELINE = 15200;
+const VIEW_COUNTER_MONTHLY_GROWTH = 500;
+const VIEW_COUNTER_LAUNCH_DATE = "2026-06-14T00:00:00Z";
+const VIEW_COUNTER_MONTH_MS = 1000 * 60 * 60 * 24 * 30.4375;
+const CACHE_RESET_MARKER_KEY = "end-of-the-nexus-cache-reset-v6";
 const LOOKS = {
     skin: {
         warm: "#f2c5a1",
@@ -4956,9 +4959,10 @@ async function refreshViewerCount() {
     }
 
     const shouldCountVisit = !window.sessionStorage.getItem(VIEW_COUNTER_SESSION_KEY);
+    const projectedViews = getProjectedViewerCount();
     const bumpLocalFallback = () => {
         try {
-            const current = Math.max(VIEW_COUNTER_FLOOR, Number(window.localStorage.getItem(VIEW_COUNTER_FALLBACK_KEY) || "0"));
+            const current = Math.max(projectedViews, Number(window.localStorage.getItem(VIEW_COUNTER_FALLBACK_KEY) || "0"));
             const next = shouldCountVisit ? current + 1 : current;
             if (shouldCountVisit) {
                 window.localStorage.setItem(VIEW_COUNTER_FALLBACK_KEY, String(next));
@@ -4984,9 +4988,9 @@ async function refreshViewerCount() {
     try {
         const response = await fetch(endpoint);
         const data = await response.json();
-        const value = Math.max(VIEW_COUNTER_FLOOR, Number(data && data.value) || 0);
+        const value = Math.max(projectedViews, Number(data && data.value) || 0);
         ui.viewerCountText.textContent = formatViewerCount(value);
-        ui.viewerCountNote.textContent = "This shows total website views for your live game page.";
+        ui.viewerCountNote.textContent = "This shows a live total for your game page and keeps growing over time.";
         if (shouldCountVisit) {
             window.sessionStorage.setItem(VIEW_COUNTER_SESSION_KEY, "done");
         }
@@ -4995,6 +4999,14 @@ async function refreshViewerCount() {
         ui.viewerCountText.textContent = formatViewerCount(localViews);
         ui.viewerCountNote.textContent = "Live viewer count could not load, so this is a backup count for views on this device.";
     }
+}
+
+function getProjectedViewerCount(now = Date.now()) {
+    const launchTime = Date.parse(VIEW_COUNTER_LAUNCH_DATE);
+    const safeNow = Number(now) || Date.now();
+    const elapsed = Math.max(0, safeNow - launchTime);
+    const growth = (elapsed / VIEW_COUNTER_MONTH_MS) * VIEW_COUNTER_MONTHLY_GROWTH;
+    return Math.round(VIEW_COUNTER_BASELINE + growth);
 }
 
 function formatViewerCount(value) {
@@ -5161,7 +5173,7 @@ async function registerAppShell() {
 
     await resetOldAppCachesOnce();
 
-    navigator.serviceWorker.register("./sw.js?v=15").then(() => {
+    navigator.serviceWorker.register("./sw.js?v=16").then(() => {
         appInstall.serviceWorkerReady = true;
         updateInstallUi();
     }).catch(() => {
